@@ -2,9 +2,6 @@ package middleware
 
 import (
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"net/http"
 )
 
 type users struct{
@@ -27,23 +24,12 @@ type employee struct{
 
 }
 
-func Homelink (w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Welcome home!")
-}
-
-func Login (w http.ResponseWriter, r *http.Request) {
+func UsersLogin (reqBody []byte) bool{
 	var newUser users
-	// Convert r.Body into a readable formart
-	reqBody, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		fmt.Fprintf(w, "Kindly enter data with the user dni, email, password and name only in order to update")
-	} else{
-		UsersLogin(newUser, reqBody)
+	json.Unmarshal(reqBody, &newUser)
+	if !dniIncorrect(newUser){
+		return false
 	}
-
+	return true
 }
 
-
-func SignIn (w http.ResponseWriter, r *http.Request){
-
-}

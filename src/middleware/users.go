@@ -1,18 +1,21 @@
 package middleware
 
-import "encoding/json"
-
-func UsersLogin (newUser users, reqBody []byte) bool{
-	json.Unmarshal(reqBody, &newUser)
-	if !dniIncorrect(newUser){
-		return false
-	}
-}
+import "strings"
 
 func dniIncorrect(newUser users) bool{
 	if len(newUser.DNI)!=9{
-		panic("DNI incorrecto")
 		return false
+	} else {
+		c := strings.ToUpper(newUser.DNI[8:])
+		asciiValue := int(c[0])
+		if asciiValue < 65 || asciiValue > 90 {
+			return false
+		} else {
+			//dniNumbers, _ := strconv.Atoi(newUser.DNI[0:8])
+
+
+			//verificar que el dni existe, numeros / 23
+		}
 	}
 	//if dni no existe return false
 	return true
