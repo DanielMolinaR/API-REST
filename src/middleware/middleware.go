@@ -27,7 +27,7 @@ type employee struct{
 func UsersLogin (reqBody []byte) bool{
 	var newUser users
 	json.Unmarshal(reqBody, &newUser)
-	if !dniIncorrect(newUser){
+	if !verifyLogin(newUser){
 		return false
 	}
 	return true

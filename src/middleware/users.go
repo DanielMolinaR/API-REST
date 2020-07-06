@@ -1,22 +1,60 @@
 package middleware
 
-import "strings"
+import (
+	"TFG/API-REST/src/lib"
+	"strconv"
+	"strings"
+)
 
-func dniIncorrect(newUser users) bool{
+func verifyLogin(newUser users) bool{
 	if len(newUser.DNI)!=9{
 		return false
 	} else {
-		c := strings.ToUpper(newUser.DNI[8:])
-		asciiValue := int(c[0])
-		if asciiValue < 65 || asciiValue > 90 {
+		if !verifyLastCharIsALetter(newUser){
 			return false
 		} else {
-			//dniNumbers, _ := strconv.Atoi(newUser.DNI[0:8])
-
-
-			//verificar que el dni existe, numeros / 23
+			if !verifyLetterIsCorrect(newUser){
+				return false
+			} else {
+				if !checkIfDniExistsAndPassswordIsCorrect(newUser){
+					return false
+				}
+			}
 		}
 	}
-	//if dni no existe return false
 	return true
+}
+
+func verifyLastCharIsALetter(newUser users) bool{
+	c := strings.ToUpper(newUser.DNI[8:])
+	asciiValue := int(c[0])
+	if asciiValue < 65 || asciiValue > 90 {
+		return false
+	} else {
+		return true
+	}
+}
+
+func verifyLetterIsCorrect (newUser users) bool {
+	_, err := strconv.Atoi(newUser.DNI[0:8])
+	if err!=nil{
+		return false
+	}
+	return true
+}
+
+func checkIfDniExistsAndPassswordIsCorrect(newUser users) bool{
+	db := lib.ConectToDB()
+	sqlStatement := "SELECT dni, password FROM clients WHERE dni = " + newUser.DNI
+	if bool, rows := lib.SelectQuery2(db, sqlStatement); !bool{
+		return false
+	} else {
+		u := users{}
+		for rows.Next(){
+			if rows.Scan(&u.password); u.password == newUser.password {
+				return true
+			}
+		}
+	}
+	return false
 }
