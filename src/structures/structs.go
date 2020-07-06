@@ -9,12 +9,12 @@ type Users struct{
 	Phone		string	`json:"phone"`
 }
 
-type patients struct{
+type Patients struct{
 	User Users
 	Age  int 	`json:"age"`
 }
 
-type employee struct{
+type Employee struct{
 	User   Users
 	Active bool	`json:"active"`
 }
