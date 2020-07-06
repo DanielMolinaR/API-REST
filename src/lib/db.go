@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/lib/pq"
-	"log"
 )
 
 const (
@@ -24,16 +23,17 @@ type Employee struct{
 }
 
 func ConectToDB() *sql.DB{
-
+	//Set the params to connect to the DB
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
+	//Validate params for conection
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		panic(err)
 	}
 	defer db.Close()
-
+	//Open the conection
 	err = db.Ping()
 	if err != nil {
 		panic(err)
@@ -45,35 +45,8 @@ func ConectToDB() *sql.DB{
 
 }
 
-func SelectQuery(db *sql.DB){
-	sqlStatement := "select * from employee;"
-
-	rows, err := db.Query(sqlStatement)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer rows.Close()
-
-	employee := []Employee{}
-
-	for rows.Next() {
-		b := Employee{}
-		if err := rows.Scan(&b.dni, &b.email, &b.password, &b.name, &b.surname); err != nil {
-			log.Fatal(err)
-		}
-		employee = append(employee, b)
-	}
-	// Check for errors from iterating over rows.
-	if err := rows.Err(); err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println(employee)
-}
-
-func SelectQuery2(db *sql.DB, sqlStatement string) (bool, *sql.Rows) {
-
+func SelectQuery(db *sql.DB, sqlStatement string) (bool, *sql.Rows) {
+	//DB query which return rows and an error if it happens
 	rows, err := db.Query(sqlStatement)
 
 	if err != nil {

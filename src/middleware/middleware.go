@@ -1,32 +1,17 @@
 package middleware
 
 import (
+	"TFG/API-REST/src/structures"
 	"encoding/json"
 )
 
-type users struct{
-	DNI         string `json:"DNI"`
-	Email       string `json:"Email"`
-	password 	string `json:"password"`
-	Name 		string `json:"Name"`
-	Surname 	string `json:"Surname""`
-	phone		string	`json:"phone"`
-}
-
-type client struct{
-	user 		users
-	age 		int 	`json:"age"`
-}
-
-type employee struct{
-	user		users
-	active		bool	`json:"active"`
-
-}
 
 func UsersLogin (reqBody []byte) bool{
-	var newUser users
+	var newUser structures.Users
+	//The data from reqBody is filled in the newUser
 	json.Unmarshal(reqBody, &newUser)
+	//verifyLogin verify if all params are correct
+	// and if they exist in the DB
 	if !verifyLogin(newUser){
 		return false
 	}
