@@ -25,6 +25,15 @@ func checkIfDniExistsAndPassswordIsCorrect(dni, password string) bool{
 	}
 }
 
+func checkIfDniExists (dni string) bool {
+	sqlStatement := "SELECT dni FROM users WHERE dni = " + dni
+	//Do the query which return a bool and rows of data
+	if bool, _ := SelectQuery(db, sqlStatement); !bool{
+		return false
+	}
+	return true
+}
+
 func DoInsert(sqlStatement string) bool {
 	response := InsertQuery(db, sqlStatement)
 	return response

@@ -9,9 +9,9 @@ type Users struct{
 	Phone		string	`json:"phone"`
 }
 
-type Patients struct{
+type Patient struct{
 	User Users
-	Age  int 	`json:"age"`
+	Age  string 	`json:"age"`
 }
 
 type Employee struct{

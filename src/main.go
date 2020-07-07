@@ -36,9 +36,26 @@ func employeeSignIn(w http.ResponseWriter,r *http.Request){
 	// Convert r.Body into a readable formart
 	reqBody, err := ioutil.ReadAll(r.Body)
 	if err == nil {
-		//In UsersLogin the user is created with data
-		//and then It's verified
+		//In EmployeeSignInVerification the user
+		//is created with data and verified
 		if	bool, response := EmployeeSignInVerification(reqBody); !bool{
+			fmt.Fprintf(w, "No se ha podido crear el usuario: %v", response)
+		} else {
+			fmt.Fprintf(w, response)
+		}
+	} else{
+		panic(err)
+	}
+}
+
+func patientSignIn(w http.ResponseWriter,r *http.Request){
+	fmt.Println(r.Method, r.Host)
+	// Convert r.Body into a readable formart
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err == nil {
+		//In PatientSignInVerification the user
+		//is created with data and verified
+		if	bool, response := PatientSignInVerification(reqBody); !bool{
 			fmt.Fprintf(w, "No se ha podido crear el usuario: %v", response)
 		} else {
 			fmt.Fprintf(w, response)
@@ -54,5 +71,6 @@ func main() {
 	router.HandleFunc("/", Homelink)
 	router.HandleFunc("/login", Login).Methods("GET")
 	router.HandleFunc("/employee-signIn", employeeSignIn).Methods("POST")
+	router.HandleFunc("/patient-signIn", patientSignIn).Methods("POST")
 	log.Fatal(http.ListenAndServe("localhost:8080", router))
 }
