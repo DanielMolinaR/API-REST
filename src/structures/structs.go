@@ -16,5 +16,6 @@ type Patients struct{
 
 type Employee struct{
 	User   Users
-	Active bool	`json:"active"`
+	Active string	`json:"active"`
+	Admin  string	`json:"active"`
 }

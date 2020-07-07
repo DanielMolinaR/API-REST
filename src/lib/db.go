@@ -55,13 +55,12 @@ func SelectQuery(db *sql.DB, sqlStatement string) (bool, *sql.Rows) {
 	return true, rows
 }
 
-func insertQuery(db *sql.DB){
-	sqlStatement := "Insert into employee (dni, email, password, name, surname) values ($1, $2, $3, $4, $5)"
-
-	_, err := db.Exec(sqlStatement, "09089691E", "dani99mr31@gmail.com", "12345678", "Dani", "Molina")
+func InsertQuery(db *sql.DB, sqlStatement string) (bool){
+	_, err := db.Exec(sqlStatement)
 	if err != nil {
-		panic(err)
+		return false
 	}
+	return true
 }
 
 func updateQuery(db *sql.DB){
