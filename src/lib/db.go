@@ -32,7 +32,6 @@ func ConectToDB() *sql.DB{
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
 	//Open the conection
 	err = db.Ping()
 	if err != nil {
@@ -58,6 +57,7 @@ func SelectQuery(db *sql.DB, sqlStatement string) (bool, *sql.Rows) {
 func InsertQuery(db *sql.DB, sqlStatement string) (bool){
 	_, err := db.Exec(sqlStatement)
 	if err != nil {
+		fmt.Println(err)
 		return false
 	}
 	return true

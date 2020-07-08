@@ -29,11 +29,11 @@ func EmployeeSignInVerification(reqBody []byte) (bool, string){
 		return false, response
 	}
 	sqlStatement := "INSERT INTO employee (active, admin, dni, email, password, Name, Surname, phone) " +
-		"VALUES (" + newEmployee.Active + ", " +  newEmployee.Admin + ", " + newEmployee.User.DNI + ", " +
-		newEmployee.User.Email + ", " + newEmployee.User.Password + ", " + newEmployee.User.Name + ", " +
-		newEmployee.User.Surname + ", " + newEmployee.User.Phone + ")"
+		"VALUES (" + newEmployee.Active + ", " +  newEmployee.Admin + ", '" + newEmployee.User.DNI + "', '" +
+		newEmployee.User.Email + "', '" + newEmployee.User.Password + "', '" + newEmployee.User.Name + "', '" +
+		newEmployee.User.Surname + "', '" + newEmployee.User.Phone + "')"
 	if !DoInsert(sqlStatement){
-		return false, "No se ha podido crear el usuario"
+		return false, ""
 	}
 	return true, "Usuario creado"
 }
@@ -47,9 +47,9 @@ func PatientSignInVerification(reqBody []byte) (bool, string){
 		return false, response
 	}
 	sqlStatement := "INSERT INTO patients ( age, dni, email, password, Name, Surname, phone) " +
-		"VALUES (" + newPatient.Age + ", " + newPatient.User.DNI + ", " + newPatient.User.Email +
-		", " + newPatient.User.Password + ", " + newPatient.User.Name + ", " +
-		newPatient.User.Surname + ", " + newPatient.User.Phone + ")"
+		"VALUES (" + newPatient.Age + ", '" + newPatient.User.DNI + "', '" + newPatient.User.Email +
+		"', '" + newPatient.User.Password + "', '" + newPatient.User.Name + "', '" +
+		newPatient.User.Surname + "', '" + newPatient.User.Phone + "')"
 	if !DoInsert(sqlStatement){
 		return false, "No se ha podido crear el usuario"
 	}

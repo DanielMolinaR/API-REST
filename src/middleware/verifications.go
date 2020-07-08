@@ -71,7 +71,7 @@ func allAreNumbers(phone string) bool{
 	//because It iterates over UTF-8-encoded
 	//code points in the string
 	for _, ch := range phone{
-		if ch < 0 || ch > 9{
+		if int(ch) < 48 || int(ch) > 57{
 			return false
 		}
 	}

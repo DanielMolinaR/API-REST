@@ -6,9 +6,10 @@ import (
 )
 
 //Conect to the DB
-var db = ConectToDB()
+
 
 func checkIfDniExistsAndPassswordIsCorrect(dni, password string) bool{
+	var db = ConectToDB()
 	sqlStatement := "SELECT dni, password FROM users WHERE dni = " + dni
 	//Do the query which return a bool and rows of data
 	if bool, rows := SelectQuery(db, sqlStatement); !bool{
@@ -26,6 +27,7 @@ func checkIfDniExistsAndPassswordIsCorrect(dni, password string) bool{
 }
 
 func checkIfDniExists (dni string) bool {
+	var db = ConectToDB()
 	sqlStatement := "SELECT dni FROM users WHERE dni = " + dni
 	//Do the query which return a bool and rows of data
 	if bool, _ := SelectQuery(db, sqlStatement); !bool{
@@ -35,6 +37,7 @@ func checkIfDniExists (dni string) bool {
 }
 
 func DoInsert(sqlStatement string) bool {
+	var db = ConectToDB()
 	response := InsertQuery(db, sqlStatement)
 	return response
 }
