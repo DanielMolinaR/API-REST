@@ -1,8 +1,10 @@
 package middleware
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
+	"github.com/badoux/checkmail"
 )
 
 var letters = []string{"T", "R", "W", "A", "G", "M", "Y", "F", "P", "D", "X", "B", "N",	"J", "Z", "S", "Q",	"V", "H", "L", "C", "K", "E"}
@@ -80,24 +82,19 @@ func allAreNumbers(phone string) bool{
 
 func verifyEmail (email string) bool {
 	//It search for the @ char
-	for i, ch := range email{
-		if string(ch) == "@"{
-			//Now It checks if the address exists
-			if emailAddressIsCorrect(email[i:]){
-				return true
-			}
-		}
+	err := checkmail.ValidateFormat(email)
+	if err != nil {
+		return false
 	}
-	return false
-}
-
-func emailAddressIsCorrect(address string) bool {
-	for _, s := range emailAddress{
-		if address == s{
-			return true
-		}
+	err = checkmail.ValidateHost(email)
+	if err != nil {
+		return false
 	}
-	return false
+	err = checkmail.ValidateHost(email)
+	if _, ok := err.(checkmail.SmtpError); ok && err != nil {
+		return false
+	}
+	return true
 }
 
 func verifyPasswordIsSafe(password string) bool {
@@ -106,3 +103,5 @@ func verifyPasswordIsSafe(password string) bool {
 	}
 	return true
 }
+
+//mirar que la contraseña no tenga espacio

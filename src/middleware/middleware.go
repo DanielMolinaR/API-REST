@@ -12,9 +12,7 @@ func UsersLogin (reqBody []byte) (bool, string){
 	json.Unmarshal(reqBody, &newUser)
 	//verifyDNI verify if the DNI is correct
 	// and if it exists in the DB
-	if !verifyDNI(newUser.DNI){
-		return false, "DNI incorrecto"
-	} else if !checkIfDniExistsAndPassswordIsCorrect(newUser.DNI, newUser.Password){
+	if !checkIfDniExistsAndPassswordIsCorrect(newUser.DNI, newUser.Password){
 		return false, "El DNI no existe"
 	}
 	return true, "Sesion inciciada"

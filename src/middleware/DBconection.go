@@ -5,10 +5,8 @@ import (
 	"TFG/API-REST/src/structures"
 )
 
-//Conect to the DB
-
-
 func checkIfDniExistsAndPassswordIsCorrect(dni, password string) bool{
+	//Conect to the DB
 	var db = ConectToDB()
 	sqlStatement := "SELECT dni, password FROM users WHERE dni = " + dni
 	//Do the query which return a bool and rows of data
