@@ -1,61 +1,46 @@
 package lib
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/pgxpool"
+	"log"
 )
 
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = "postgres"
-	dbname   = "tfg"
-)
-
-type Employee struct{
-	dni string
-	email string
-	password string
-	name string
-	surname string
-}
-
-func ConectToDB() *sql.DB{
+func ConectToDB() *pgxpool.Pool {
 	//Set the params to connect to the DB
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
-	//Validate params for conection
-	db, err := sql.Open("postgres", psqlInfo)
+	config, _ := pgxpool.ParseConfig("")
+	config.ConnConfig.Host = "localhost"
+	config.ConnConfig.Port = 5432
+	config.ConnConfig.User = "postgres"
+	config.ConnConfig.Password = "postgres"
+	config.ConnConfig.Database = "tfg"
+	//Create the connection pool
+	conn, err := pgxpool.ConnectConfig(context.Background(), config)
 	if err != nil {
-		panic(err)
-	}
-	//Open the conection
-	err = db.Ping()
-	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
 	fmt.Println("Successfully connected!")
 
-	return db
-
+	return conn
 }
 
-func SelectQuery(db *sql.DB, sqlStatement string) (bool, *sql.Rows) {
-	//DB query which return rows and an error if it happens
-	rows, err := db.Query(sqlStatement)
-
+func SelectQuery(db *pgxpool.Pool, sqlStatement, dni string) (bool, string) {
+	var password string
+	//Do the query and if It's correct the password is saved
+	err := db.QueryRow(context.Background(), sqlStatement, dni).Scan(&password)
 	if err != nil {
-		return false, nil
+		log.Fatal(err)
+		return false, ""
 	}
-	return true, rows
+
+	return true, password
 }
 
-func InsertQuery(db *sql.DB, sqlStatement string) (bool){
-	_, err := db.Exec(sqlStatement)
+func InsertQuery(db *pgxpool.Pool, sqlStatement string) (bool){
+	_, err := db.Exec(context.Background(), sqlStatement)
 	if err != nil {
 		fmt.Println(err)
 		return false

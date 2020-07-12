@@ -11,11 +11,11 @@ type Users struct{
 
 type Patient struct{
 	User Users
-	Age  string 	`json:"Age"`
+	Age  int 	`json:"Age"`
 }
 
 type Employee struct{
 	User   Users	`json:"data"`
-	Active string	`json:"Active"`
-	Admin  string	`json:"Admin"`
+	Active bool		`json:"Active"`
+	Admin  bool	`json:"Admin"`
 }

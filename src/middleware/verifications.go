@@ -1,14 +1,13 @@
 package middleware
 
 import (
-	"fmt"
+	"github.com/badoux/checkmail"
 	"strconv"
 	"strings"
-	"github.com/badoux/checkmail"
+	"unicode"
 )
 
 var letters = []string{"T", "R", "W", "A", "G", "M", "Y", "F", "P", "D", "X", "B", "N",	"J", "Z", "S", "Q",	"V", "H", "L", "C", "K", "E"}
-var emailAddress = []string{"@gmail.com", "@icloud.es", "@hotmail.com"}
 
 func verifyDNI(dni string) bool{
 	//The DNI must has 9 char
@@ -72,24 +71,41 @@ func allAreNumbers(phone string) bool{
 	//The range of a string return an int32
 	//because It iterates over UTF-8-encoded
 	//code points in the string
-	for _, ch := range phone{
+	for i, ch := range phone{
 		if int(ch) < 48 || int(ch) > 57{
 			return false
+		}
+		if i == 0{
+			//Verify if the first digit of the number
+			// matches with one of the three types of
+			//phone numbers in Spain
+			if !verifyDigit(int(ch)){
+				return false
+			}
 		}
 	}
 	return true
 }
 
+func verifyDigit(c int) bool{
+	if c == 54 || c == 55 || c == 57{
+		return true
+	}
+	return false
+}
+
 func verifyEmail (email string) bool {
-	//It search for the @ char
+	//Validate Format
 	err := checkmail.ValidateFormat(email)
 	if err != nil {
 		return false
 	}
+	//Validate Domain
 	err = checkmail.ValidateHost(email)
 	if err != nil {
 		return false
 	}
+	//Validate User
 	err = checkmail.ValidateHost(email)
 	if _, ok := err.(checkmail.SmtpError); ok && err != nil {
 		return false
@@ -97,11 +113,35 @@ func verifyEmail (email string) bool {
 	return true
 }
 
-func verifyPasswordIsSafe(password string) bool {
-	if len(password) < 6 {
-		return false
+func verifyPasswordIsSafe(s string) bool {
+	//Validate if the password has at least
+	//one letter in upper case, another one
+	//in lower case, a special character,
+	//a number and if It's longer than 6
+	var (
+		hasMinLen  = false
+		hasUpper   = false
+		hasLower   = false
+		hasNumber  = false
+		hasSpecial = false
+	)
+	if len(s) >= 7 {
+		hasMinLen = true
 	}
-	return true
+	for _, char := range s {
+		switch {
+		//
+		case unicode.IsUpper(char):
+			hasUpper = true
+		case unicode.IsLower(char):
+			hasLower = true
+		case unicode.IsNumber(char):
+			hasNumber = true
+		case unicode.IsPunct(char) || unicode.IsSymbol(char):
+			hasSpecial = true
+		}
+	}
+	//If every value is true the password is safe
+	return hasMinLen && hasUpper && hasLower && hasNumber && hasSpecial
 }
 
-//mirar que la contraseña no tenga espacio

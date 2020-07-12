@@ -31,7 +31,7 @@ func Login (w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func employeeSignIn(w http.ResponseWriter,r *http.Request){
+/*func employeeSignIn(w http.ResponseWriter,r *http.Request){
 	fmt.Println(r.Method, r.Host)
 	// Convert r.Body into a readable formart
 	reqBody, err := ioutil.ReadAll(r.Body)
@@ -63,14 +63,14 @@ func patientSignIn(w http.ResponseWriter,r *http.Request){
 	} else{
 		panic(err)
 	}
-}
+}*/
 
 func main() {
 	//routes
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", Homelink)
 	router.HandleFunc("/login", Login).Methods("GET")
-	router.HandleFunc("/employee-signIn", employeeSignIn).Methods("POST")
-	router.HandleFunc("/patient-signIn", patientSignIn).Methods("POST")
+	//router.HandleFunc("/employee-signIn", employeeSignIn).Methods("POST")
+	//router.HandleFunc("/patient-signIn", patientSignIn).Methods("POST")
 	log.Fatal(http.ListenAndServe("localhost:8080", router))
 }

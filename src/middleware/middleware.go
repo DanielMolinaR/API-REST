@@ -7,18 +7,27 @@ import (
 )
 
 func UsersLogin (reqBody []byte) (bool, string){
-	var newUser Users
+	var userToLog Users
 	//The data from reqBody is filled in the newUser
-	json.Unmarshal(reqBody, &newUser)
-	//verifyDNI verify if the DNI is correct
+	json.Unmarshal(reqBody, &userToLog)
 	// and if it exists in the DB
-	if !checkIfDniExistsAndPassswordIsCorrect(newUser.DNI, newUser.Password){
-		return false, "El DNI no existe"
+	// ************ Como hacer la verificacion del login con el correo
+	// ************ Cuando rellene el campo en l front, al ser comun
+	// ************ el cuadro de relleno como diferencia si lo que le
+	// ************ paso es para . DNI o . Email
+	if len(userToLog.DNI) == 0 && len(userToLog.Email) != 0{
+		if bool, response := checkIfEmailExistsAndPassswordIsCorrect(userToLog.Email, userToLog.Password); !bool{
+			return false, response
+		}
+	} else if len(userToLog.DNI) != 0 && len(userToLog.Email) == 0 {
+		if bool, response := checkIfDniExistsAndPassswordIsCorrect(userToLog.DNI, userToLog.Password); !bool{
+			return false, response
+		}
 	}
 	return true, "Sesion inciciada"
 }
 
-func EmployeeSignInVerification(reqBody []byte) (bool, string){
+/*func EmployeeSignInVerification(reqBody []byte) (bool, string){
 	var newEmployee Employee
 	//The data from reqBody is filled in the newUser
 	json.Unmarshal(reqBody, &newEmployee)
@@ -75,4 +84,4 @@ func signInVerifications(dni, phone, email, password string) (bool, string){
 		return false, "La contraseña es muy débil"
 	}
 	return true, ""
-}
+}*/
