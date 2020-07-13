@@ -77,8 +77,8 @@ func allAreNumbers(phone string) bool{
 		}
 		if i == 0{
 			//Verify if the first digit of the number
-			// matches with one of the three types of
-			//phone numbers in Spain
+			//matches with one of the three types of
+			//phone numbers in Spain (6,7 or 9)
 			if !verifyDigit(int(ch)){
 				return false
 			}
@@ -124,6 +124,7 @@ func verifyPasswordIsSafe(s string) bool {
 		hasLower   = false
 		hasNumber  = false
 		hasSpecial = false
+		hasntSpace = true
 	)
 	if len(s) >= 7 {
 		hasMinLen = true
@@ -139,9 +140,11 @@ func verifyPasswordIsSafe(s string) bool {
 			hasNumber = true
 		case unicode.IsPunct(char) || unicode.IsSymbol(char):
 			hasSpecial = true
+		case int(char) == 32:
+			hasntSpace = false
 		}
 	}
 	//If every value is true the password is safe
-	return hasMinLen && hasUpper && hasLower && hasNumber && hasSpecial
+	return hasMinLen && hasUpper && hasLower && hasNumber && hasSpecial && hasntSpace
 }
 

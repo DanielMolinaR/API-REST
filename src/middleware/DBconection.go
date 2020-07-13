@@ -2,55 +2,46 @@ package middleware
 
 import (
 	. "TFG/API-REST/src/lib"
+	"TFG/API-REST/src/structures"
 )
 
-func checkIfDniExistsAndPassswordIsCorrect(dni, p string) (bool, string){
+func checkIfPassswordIsCorrect(dni, p string) (bool, string){
 	//Conect to the DB
 	var db = ConectToDB()
 
 	sqlStatement := "SELECT password FROM users WHERE dni=$1"
-	//Do the query which return a bool if
-	//the DNI exists and the password saved
-	if bool, password := SelectQuery(db, sqlStatement, dni); !bool{
-		return false, "El DNI no existe"
-	} else {
-		//Check if the password is correct
-		if password == p {
-			return true, "Sesion iniciada"
-		}
-		return false, "Contraseña incorrecta"
+	//DO the select and return the password
+	_, password := SelectQuery(db, sqlStatement,dni)
+	//Check if the password is correct
+	if password == p {
+		return true, "Sesion iniciada"
 	}
+	return false, "Contraseña incorrecta"
 }
 
-func checkIfEmailExistsAndPassswordIsCorrect (email, p string) (bool, string) {
-	//Conect to the DB
-	var db = ConectToDB()
 
-	sqlStatement := "SELECT email, password FROM users WHERE email = " + email
-	//Do the query which return a bool and rows of data
-	if bool, password := SelectQuery(db, sqlStatement, email); !bool{
-		return false, "El email no existe"
-	} else {
-		//Check if the password is correct
-		if password == p {
-			return true, "Sesion iniciada"
-		}
-		return false, "Contraseña incorrecta"
-	}
-}
-
-func checkIfDniExists (dni string) bool {
+func checkIfExists (data string) bool {
 	var db = ConectToDB()
-	sqlStatement := "SELECT dni FROM users WHERE dni = " + dni
+	sqlStatement := "SELECT dni FROM users WHERE dni = $1"
 	//Do the query which return a bool and rows of data
-	if bool, _ := SelectQuery(db, sqlStatement, dni); !bool{
+	if bool, _ := SelectQuery(db, sqlStatement, data); !bool{
 		return false
 	}
 	return true
 }
 
-func DoInsert(sqlStatement string) bool {
+func DoEmployeeInsert(employee structures.Employee) bool {
 	var db = ConectToDB()
-	response := InsertQuery(db, sqlStatement)
+	sqlStatement := "INSERT INTO employee (active, admin, dni, email, password, Name, Surname, phone) " +
+		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"
+	response := InsertEmployeeQuery(db, sqlStatement, employee)
+	return response
+}
+
+func DoPatientInsert(patient structures.Patient) bool {
+	var db = ConectToDB()
+	sqlStatement := "INSERT INTO patients (age, dni, email, password, Name, Surname, phone) " +
+		"VALUES ($1, $2, $3, $4, $5, $6, $7)"
+	response := InsertPatientQuery(db, sqlStatement, patient)
 	return response
 }

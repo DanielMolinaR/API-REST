@@ -1,11 +1,11 @@
 package lib
 
 import (
+	"TFG/API-REST/src/structures"
 	"context"
 	"database/sql"
 	"fmt"
 	"github.com/jackc/pgx/pgxpool"
-	"log"
 )
 
 func ConectToDB() *pgxpool.Pool {
@@ -27,20 +27,31 @@ func ConectToDB() *pgxpool.Pool {
 	return conn
 }
 
-func SelectQuery(db *pgxpool.Pool, sqlStatement, dni string) (bool, string) {
+func SelectQuery(db *pgxpool.Pool, sqlStatement, data string) (bool, string) {
 	var password string
 	//Do the query and if It's correct the password is saved
-	err := db.QueryRow(context.Background(), sqlStatement, dni).Scan(&password)
+	err := db.QueryRow(context.Background(), sqlStatement, data).Scan(&password)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 		return false, ""
 	}
 
 	return true, password
 }
 
-func InsertQuery(db *pgxpool.Pool, sqlStatement string) (bool){
-	_, err := db.Exec(context.Background(), sqlStatement)
+func InsertEmployeeQuery(db *pgxpool.Pool, sqlStatement string, employee structures.Employee) (bool){
+	_, err := db.Exec(context.Background(), sqlStatement, employee.Active, employee.Admin, employee.User.DNI,
+		employee.User.Email, employee.User.Password, employee.User.Name, employee.User.Surname, employee.User.Phone)
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+	return true
+}
+
+func InsertPatientQuery(db *pgxpool.Pool, sqlStatement string, patient structures.Patient) (bool){
+	_, err := db.Exec(context.Background(), sqlStatement, patient.Age, patient.User.DNI, patient.User.Email,
+		patient.User.Password, patient.User.Name, patient.User.Surname, patient.User.Phone)
 	if err != nil {
 		fmt.Println(err)
 		return false

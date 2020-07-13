@@ -10,7 +10,7 @@ type Users struct{
 }
 
 type Patient struct{
-	User Users
+	User Users	`json:"data"`
 	Age  int 	`json:"Age"`
 }
 
