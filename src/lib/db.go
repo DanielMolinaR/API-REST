@@ -4,18 +4,36 @@ import (
 	"TFG/API-REST/src/structures"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"github.com/jackc/pgx/pgxpool"
+	"io/ioutil"
+	"os"
 )
 
+type Conection struct{
+	host string `json:host`
+	port uint16 `json:port`
+	user string `json:user`
+	password string `json:password`
+	database string `json:database`
+}
+
 func ConectToDB() *pgxpool.Pool {
+	dataconfig, err := os.Open("conection.json")
+	if err != nil {
+		fmt.Println(err)
+	}
+	jsonBody, _ := ioutil.ReadAll(dataconfig)
+	var conection Conection
+	json.Unmarshal(jsonBody, &conection)
 	//Set the params to connect to the DB
 	config, _ := pgxpool.ParseConfig("")
-	config.ConnConfig.Host = "localhost"
-	config.ConnConfig.Port = 5432
-	config.ConnConfig.User = "postgres"
-	config.ConnConfig.Password = "postgres"
-	config.ConnConfig.Database = "tfg"
+	config.ConnConfig.Host = conection.host
+	config.ConnConfig.Port = conection.port
+	config.ConnConfig.User = conection.user
+	config.ConnConfig.Password = conection.password
+	config.ConnConfig.Database = conection.database
 	//Create the connection pool
 	conn, err := pgxpool.ConnectConfig(context.Background(), config)
 	if err != nil {
