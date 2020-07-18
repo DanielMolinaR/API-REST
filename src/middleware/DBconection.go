@@ -13,7 +13,7 @@ func checkIfPassswordIsCorrect(dni, p string) (bool, string){
 	//DO the select and return the password
 	_, password := SelectQuery(db, sqlStatement,dni)
 	//Check if the password is correct
-	if password == p {
+	if ComparePwdAndHash([]byte(p), []byte(password)) {
 		return true, "Sesion iniciada"
 	}
 	return false, "Contraseña incorrecta"

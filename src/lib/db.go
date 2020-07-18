@@ -12,15 +12,15 @@ import (
 )
 
 type Conection struct{
-	host string `json:host`
-	port uint16 `json:port`
-	user string `json:user`
-	password string `json:password`
-	database string `json:database`
+	Host string `json:"Host"`
+	Port uint16 `json:"Port"`
+	User string `json:"User"`
+	Password string `json:"Password"`
+	Database string `json:"Database"`
 }
 
 func ConectToDB() *pgxpool.Pool {
-	dataconfig, err := os.Open("conection.json")
+	dataconfig, err := os.Open("./API-REST/src/lib/conection.json")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -29,11 +29,11 @@ func ConectToDB() *pgxpool.Pool {
 	json.Unmarshal(jsonBody, &conection)
 	//Set the params to connect to the DB
 	config, _ := pgxpool.ParseConfig("")
-	config.ConnConfig.Host = conection.host
-	config.ConnConfig.Port = conection.port
-	config.ConnConfig.User = conection.user
-	config.ConnConfig.Password = conection.password
-	config.ConnConfig.Database = conection.database
+	config.ConnConfig.Host = conection.Host
+	config.ConnConfig.Port = conection.Port
+	config.ConnConfig.User = conection.User
+	config.ConnConfig.Password = conection.Password
+	config.ConnConfig.Database = conection.Database
 	//Create the connection pool
 	conn, err := pgxpool.ConnectConfig(context.Background(), config)
 	if err != nil {

@@ -10,7 +10,7 @@ import (
 var letters = []string{"T", "R", "W", "A", "G", "M", "Y", "F", "P", "D", "X", "B", "N",	"J", "Z", "S", "Q",	"V", "H", "L", "C", "K", "E"}
 
 func verifyDNI(dni string) bool{
-	//The DNI must has 9 char
+	//The DNI must has 9 characters
 	if len(dni)!=9{
 		return false
 	} else {
