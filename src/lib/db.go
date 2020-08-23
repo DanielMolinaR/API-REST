@@ -45,9 +45,10 @@ func ConectToDB() *pgxpool.Pool {
 	return conn
 }
 
-func SelectQuery(db *pgxpool.Pool, sqlStatement, data string) (bool, string) {
+func SelectQueryPwd(db *pgxpool.Pool, sqlStatement string, data string) (bool, string) {
 	var password string
-	//Do the query and if It's correct the password is saved
+	//Do the query and if It's correct
+	//It means that the password is saved
 	err := db.QueryRow(context.Background(), sqlStatement, data).Scan(&password)
 	if err != nil {
 		fmt.Println(err)
@@ -55,6 +56,15 @@ func SelectQuery(db *pgxpool.Pool, sqlStatement, data string) (bool, string) {
 	}
 
 	return true, password
+}
+
+func SelectQuery(db *pgxpool.Pool, sqlStatement, data string) (bool) {
+	_, err := db.Query(context.Background(), sqlStatement, data)
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+	return true
 }
 
 func InsertEmployeeQuery(db *pgxpool.Pool, sqlStatement string, employee structures.Employee) (bool){
