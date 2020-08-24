@@ -2,8 +2,10 @@ package main
 
 import (
 	. "TFG/API-REST/src/middleware"
+	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -22,12 +24,12 @@ func Login (w http.ResponseWriter, r *http.Request) {
 		//In UsersLogin the user is created with data
 		//and then It's verified
 		if	bool, response := UsersLogin(reqBody); !bool{
-			fmt.Fprintf(w, response)
+			json.NewEncoder(w).Encode(response)
 		} else {
-			fmt.Fprintf(w, response)
+			json.NewEncoder(w).Encode(response)
 		}
 	} else{
-		panic(err)
+		json.NewEncoder(w).Encode(err)
 	}
 }
 
@@ -39,12 +41,13 @@ func employeeSignIn(w http.ResponseWriter,r *http.Request){
 		//In EmployeeSignInVerification the user
 		//is created with data and verified
 		if	bool, response := EmployeeSignInVerification(reqBody); !bool{
-			fmt.Fprintf(w, "No se ha podido crear el usuario: %v", response)
+			response = "No se ha podido crear el usuario: " + response
+			json.NewEncoder(w).Encode(response)
 		} else {
 			fmt.Fprintf(w, response)
 		}
 	} else{
-		panic(err)
+		json.NewEncoder(w).Encode(err)
 	}
 }
 
@@ -61,16 +64,17 @@ func patientSignIn(w http.ResponseWriter,r *http.Request){
 			fmt.Fprintf(w, response)
 		}
 	} else{
-		panic(err)
+		json.NewEncoder(w).Encode(err)
 	}
 }
 
 func main() {
 	//routes
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/", Login).Methods("POST")
+	router.HandleFunc("/", Login).Methods("POST", "OPTIONS")
 	router.HandleFunc("/home", Homelink).Methods("GET")
 	router.HandleFunc("/employee-signIn", employeeSignIn).Methods("POST")
 	router.HandleFunc("/patient-signIn", patientSignIn).Methods("POST")
-	log.Fatal(http.ListenAndServe("localhost:3000", router))
+	handler := cors.Default().Handler(router)
+	log.Fatal(http.ListenAndServe("localhost:3000", handler))
 }

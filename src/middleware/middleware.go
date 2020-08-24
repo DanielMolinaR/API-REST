@@ -6,28 +6,34 @@ import (
 	"encoding/json"
 )
 
-func UsersLogin (reqBody []byte) (bool, string){
+func UsersLogin(reqBody []byte) (bool, map[string]interface{}) {
 	var userToLog Users
 	//The data from reqBody is filled in the newUser
 	json.Unmarshal(reqBody, &userToLog)
 	//verify that the DNI or the Email exists
 	if len(userToLog.DNI) == 0 && len(userToLog.Email) != 0{
 		if !checkIfExists(userToLog.Email, "email"){
-			return false, "El usuario no existe"
+			return false, map[string]interface{}{"response": "El usuario no existe"}
 			//If exists check the password
 		} else if bool, response := checkIfPassswordIsCorrect(userToLog.Email, userToLog.Password); !bool{
-			return false, response
+			return false, map[string]interface{}{"response": response}
 		}
 	} else if len(userToLog.DNI) != 0 && len(userToLog.Email) == 0 {
 		if !checkIfExists(userToLog.DNI, "dni"){
-			return false, "El usuario no existe"
+			return false, map[string]interface{}{"response": "El usuario no existe"}
 		}
 		//If exists check the password
 		if bool, response := checkIfPassswordIsCorrect(userToLog.DNI, userToLog.Password); !bool{
-			return false, response
+			return false, map[string]interface{}{"response": response}
 		}
 	}
-	return true, "Sesion inciciada"
+	if len(userToLog.DNI) == 0 && len(userToLog.Email) != 0 {
+		return true, map[string]interface{}{"response": "Sesión inicada", "name": getUserName(userToLog.Email, "email"),
+			"userId": getUserId(userToLog.Email, "email"), "token": generateToken()}
+	} else {
+		return true, map[string]interface{}{"response": "Sesión inicada", "name": getUserName(userToLog.DNI, "dni"),
+			"userId": getUserId(userToLog.DNI, "dni"), "token": generateToken()}
+	}
 }
 
 func EmployeeSignInVerification(reqBody []byte) (bool, string){

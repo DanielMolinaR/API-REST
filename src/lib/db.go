@@ -45,17 +45,17 @@ func ConectToDB() *pgxpool.Pool {
 	return conn
 }
 
-func SelectQueryPwd(db *pgxpool.Pool, sqlStatement string, data string) (bool, string) {
+func SelectQueryPwd(db *pgxpool.Pool, sqlStatement, data string) (string) {
 	var password string
 	//Do the query and if It's correct
 	//It means that the password is saved
 	err := db.QueryRow(context.Background(), sqlStatement, data).Scan(&password)
 	if err != nil {
 		fmt.Println(err)
-		return false, ""
+		return ""
 	}
 
-	return true, password
+	return password
 }
 
 func SelectQuery(db *pgxpool.Pool, sqlStatement, data string) (bool) {
@@ -65,6 +65,39 @@ func SelectQuery(db *pgxpool.Pool, sqlStatement, data string) (bool) {
 		return false
 	}
 	return true
+}
+
+func SelectUserDataQuery(db *pgxpool.Pool, sqlStatement, data string) map[string]interface{} {
+	var (
+		name string
+		email string
+		phone string
+		surname string
+	)
+	//Do the query and if It's correct
+	//It means that the password is saved
+	err := db.QueryRow(context.Background(), sqlStatement, data).Scan(&name, &email, &phone, &surname)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+
+	return map[string]interface{}{"name": name, "email": email, "phone": phone, "surname": surname}
+}
+
+func SelectEmployeeDataQuery(db *pgxpool.Pool, sqlStatement, data string) (bool, bool) {
+	var (
+		admin bool
+		active bool
+	)
+	//Do the query and if It's correct
+	//It means that the password is saved
+	err := db.QueryRow(context.Background(), sqlStatement, data).Scan(&admin, &active)
+	if err != nil {
+		fmt.Println(err)
+		return false, false
+	}
+	return active, admin
 }
 
 func InsertEmployeeQuery(db *pgxpool.Pool, sqlStatement string, employee structures.Employee) (bool){
