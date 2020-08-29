@@ -29,10 +29,10 @@ func UsersLogin(reqBody []byte) (bool, map[string]interface{}) {
 	}
 	if len(userToLog.DNI) == 0 && len(userToLog.Email) != 0 {
 		return true, map[string]interface{}{"response": "Sesión inicada", "name": getUserName(userToLog.Email, "email"),
-			"userId": getUserId(userToLog.Email, "email"), "token": generateToken()}
+			"userId": getUserId(userToLog.Email, "email")}
 	} else {
 		return true, map[string]interface{}{"response": "Sesión inicada", "name": getUserName(userToLog.DNI, "dni"),
-			"userId": getUserId(userToLog.DNI, "dni"), "token": generateToken()}
+			"userId": getUserId(userToLog.DNI, "dni")}
 	}
 }
 

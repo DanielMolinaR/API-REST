@@ -25,7 +25,7 @@ func checkIfExists (data, condition string) bool {
 		db = ConectToDB()
 		sqlStatement string
 	)
-	sqlStatement = "SELECT" + condition + "FROM users WHERE" + condition +"= $1"
+	sqlStatement = "SELECT " + condition + " FROM users WHERE " + condition +" = $1"
 	//Do the query which return a bool if exists
 	if !SelectQuery(db, sqlStatement, data){
 		return false
@@ -56,7 +56,7 @@ func DoPatientInsert(patient structures.Patient) bool {
 
 func getUserName(data, condition string) string {
 	var db = ConectToDB()
-	sqlStatement := "SELECT * FROM users WHERE" + condition +"= $1"
+	sqlStatement := "SELECT * FROM users WHERE " + condition +" = $1"
 	userData := SelectUserDataQuery(db, sqlStatement, data)
 	response := userData["name"].(string)
 	return response
@@ -74,7 +74,7 @@ func getUserId(data, condition string) string{
 
 func isPatient(data, condition string) bool {
 	var db = ConectToDB()
-	sqlStatement := "SELECT" + condition + "FROM patients WHERE" + condition +"= $1"
+	sqlStatement := "SELECT " + condition + " FROM patients WHERE " + condition +" = $1"
 	//Do the query which return a bool if exists
 	if !SelectQuery(db, sqlStatement, data){
 		return false
@@ -84,7 +84,7 @@ func isPatient(data, condition string) bool {
 
 func isTrabajador(data, condition string) (bool, string) {
 	var db = ConectToDB()
-	sqlStatement := "SELECT * FROM employee WHERE" + condition +"= $1"
+	sqlStatement := "SELECT admin, active FROM employee WHERE " + condition +" = $1"
 	//Do the query which return a bool if exists
 	if active, admin := SelectEmployeeDataQuery(db, sqlStatement, data); active{
 		if admin {

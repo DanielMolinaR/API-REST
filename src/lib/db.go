@@ -59,7 +59,9 @@ func SelectQueryPwd(db *pgxpool.Pool, sqlStatement, data string) (string) {
 }
 
 func SelectQuery(db *pgxpool.Pool, sqlStatement, data string) (bool) {
-	_, err := db.Query(context.Background(), sqlStatement, data)
+	var dni string
+
+	err := db.QueryRow(context.Background(), sqlStatement, data).Scan(&dni)
 	if err != nil {
 		fmt.Println(err)
 		return false
@@ -73,13 +75,16 @@ func SelectUserDataQuery(db *pgxpool.Pool, sqlStatement, data string) map[string
 		email string
 		phone string
 		surname string
+		dni string
+		password string
 	)
 	//Do the query and if It's correct
 	//It means that the password is saved
-	err := db.QueryRow(context.Background(), sqlStatement, data).Scan(&name, &email, &phone, &surname)
+	err := db.QueryRow(context.Background(), sqlStatement, data).Scan(&dni, &email,
+		&password, &name, &surname, &phone)
 	if err != nil {
 		fmt.Println(err)
-		return ""
+		return map[string]interface{}{"error": err}
 	}
 
 	return map[string]interface{}{"name": name, "email": email, "phone": phone, "surname": surname}
@@ -119,6 +124,8 @@ func InsertPatientQuery(db *pgxpool.Pool, sqlStatement string, patient structure
 	}
 	return true
 }
+
+
 
 func updateQuery(db *sql.DB){
 	sqlStatement := "UPDATE employee set name=($1), surname=($2) where dni=($3)"
