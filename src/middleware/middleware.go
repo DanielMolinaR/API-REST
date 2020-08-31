@@ -3,8 +3,19 @@ package middleware
 import (
 
 	. "TFG/API-REST/src/structures"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
+	"github.com/gbrlsnchs/jwt"
+	"math/rand"
+	"time"
 )
+
+type CustomPayload struct {
+	jwt.Payload
+}
+
+var hs = jwt.NewHS256([]byte("secret"))
 
 func UsersLogin(reqBody []byte) (bool, map[string]interface{}) {
 	var userToLog Users
@@ -29,10 +40,10 @@ func UsersLogin(reqBody []byte) (bool, map[string]interface{}) {
 	}
 	if len(userToLog.DNI) == 0 && len(userToLog.Email) != 0 {
 		return true, map[string]interface{}{"response": "Sesión inicada", "name": getUserName(userToLog.Email, "email"),
-			"userId": getUserId(userToLog.Email, "email")}
+			"userId": getUserId(userToLog.Email, "email"), "token": generateToken()}
 	} else {
 		return true, map[string]interface{}{"response": "Sesión inicada", "name": getUserName(userToLog.DNI, "dni"),
-			"userId": getUserId(userToLog.DNI, "dni")}
+			"userId": getUserId(userToLog.DNI, "dni"), "token": generateToken()}
 	}
 }
 
@@ -86,4 +97,58 @@ func signInVerifications(dni, phone, email, password string) (bool, string){
 		return false, "La contraseña es muy débil"
 	}
 	return true, ""
+}
+
+func generateToken() string {
+	now := time.Now()
+	rand.Seed(time.Now().UnixNano())
+	pl := CustomPayload{
+		Payload: jwt.Payload{
+			Audience:       jwt.Audience{"https://golang.org", "https://jwt.io"},
+			ExpirationTime: jwt.NumericDate(now.Add(24 * 7 * time.Hour)),
+			NotBefore:      jwt.NumericDate(now.Add(1 * time.Second)), //30 min es mucho reducirlo a menos
+			IssuedAt:       jwt.NumericDate(now),
+			JWTID:			string(rand.Intn(100)),
+		},
+	}
+	//sign the token
+	token, err := jwt.Sign(pl, hs)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+	//verify the token
+	var pl2 CustomPayload
+	_, err = jwt.Verify(token, hs, &pl2)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+	return hex.EncodeToString(token)
+}
+
+func isLogged(token string) bool{
+	tokenDecoded, _ := hex.DecodeString(token)
+	//validate
+	var (
+		now = time.Now()
+		aud = jwt.Audience{"https://golang.org", "https://jwt.io"}
+
+		// Validate claims "iat", "exp" and "aud".
+		iatValidator = jwt.IssuedAtValidator(now)
+		expValidator = jwt.ExpirationTimeValidator(now)
+		audValidator = jwt.AudienceValidator(aud)
+		nbValidator  = jwt.NotBeforeValidator(now)
+
+		// Use jwt.ValidatePayload to build a jwt.VerifyOption.
+		// Validators are run in the order informed.
+		pl              CustomPayload
+		validatePayload = jwt.ValidatePayload(&pl.Payload, iatValidator, expValidator, audValidator, nbValidator)
+	)
+	hd, err := jwt.Verify(tokenDecoded, hs, &pl, validatePayload)
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+	return true
 }
