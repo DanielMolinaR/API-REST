@@ -24,25 +24,25 @@ func UsersLogin(reqBody []byte) (bool, map[string]interface{}) {
 	//verify that the DNI or the Email exists
 	if len(userToLog.DNI) == 0 && len(userToLog.Email) != 0{
 		if !checkIfExists(userToLog.Email, "email"){
-			return false, map[string]interface{}{"response": "El usuario no existe"}
+			return false, map[string]interface{}{"state": "El usuario no existe"}
 			//If exists check the password
 		} else if bool, response := checkIfPassswordIsCorrect(userToLog.Email, userToLog.Password); !bool{
-			return false, map[string]interface{}{"response": response}
+			return false, map[string]interface{}{"state": response}
 		}
 	} else if len(userToLog.DNI) != 0 && len(userToLog.Email) == 0 {
 		if !checkIfExists(userToLog.DNI, "dni"){
-			return false, map[string]interface{}{"response": "El usuario no existe"}
+			return false, map[string]interface{}{"state": "El usuario no existe"}
 		}
 		//If exists check the password
 		if bool, response := checkIfPassswordIsCorrect(userToLog.DNI, userToLog.Password); !bool{
-			return false, map[string]interface{}{"response": response}
+			return false, map[string]interface{}{"state": response}
 		}
 	}
 	if len(userToLog.DNI) == 0 && len(userToLog.Email) != 0 {
-		return true, map[string]interface{}{"response": "Sesión inicada", "name": getUserName(userToLog.Email, "email"),
+		return true, map[string]interface{}{"state": "Sesión inicada", "name": getUserName(userToLog.Email, "email"),
 			"userId": getUserId(userToLog.Email, "email"), "token": generateToken()}
 	} else {
-		return true, map[string]interface{}{"response": "Sesión inicada", "name": getUserName(userToLog.DNI, "dni"),
+		return true, map[string]interface{}{"state": "Sesión inicada", "name": getUserName(userToLog.DNI, "dni"),
 			"userId": getUserId(userToLog.DNI, "dni"), "token": generateToken()}
 	}
 }
@@ -145,7 +145,7 @@ func isLogged(token string) bool{
 		pl              CustomPayload
 		validatePayload = jwt.ValidatePayload(&pl.Payload, iatValidator, expValidator, audValidator, nbValidator)
 	)
-	hd, err := jwt.Verify(tokenDecoded, hs, &pl, validatePayload)
+	_, err := jwt.Verify(tokenDecoded, hs, &pl, validatePayload)
 	if err != nil {
 		fmt.Println(err)
 		return false
