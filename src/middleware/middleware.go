@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/gbrlsnchs/jwt"
 	"math/rand"
+	"strings"
 	"time"
 )
 
@@ -17,15 +18,24 @@ type CustomPayload struct {
 
 var hs = jwt.NewHS256([]byte("secret"))
 
-func UsersLogin(reqBody []byte) (bool, map[string]interface{}) {
+func UsersLogin(reqBody []byte, token string) (bool, map[string]interface{}) {
+
+	//Check if the token is valid
+	if validateToken(token){
+		return true, map[string]interface{}{"state": "Sesión iniciada"}
+	}
+
 	var userToLog Users
+
 	//The data from reqBody is filled in the newUser
 	json.Unmarshal(reqBody, &userToLog)
-	//verify that the DNI or the Email exists
+
+	//Verify that the DNI or the Email
 	if len(userToLog.DNI) == 0 && len(userToLog.Email) != 0{
 		if !checkIfExists(userToLog.Email, "email"){
 			return false, map[string]interface{}{"state": "El usuario no existe"}
-			//If exists check the password
+
+		//If exists check if the password is correct
 		} else if bool, response := checkIfPassswordIsCorrect(userToLog.Email, userToLog.Password); !bool{
 			return false, map[string]interface{}{"state": response}
 		}
@@ -33,11 +43,15 @@ func UsersLogin(reqBody []byte) (bool, map[string]interface{}) {
 		if !checkIfExists(userToLog.DNI, "dni"){
 			return false, map[string]interface{}{"state": "El usuario no existe"}
 		}
-		//If exists check the password
+
+		//If exists check if the password is correct
 		if bool, response := checkIfPassswordIsCorrect(userToLog.DNI, userToLog.Password); !bool{
 			return false, map[string]interface{}{"state": response}
 		}
 	}
+
+	//Return true with a msg of correct login,
+	//the name of the user and the position
 	if len(userToLog.DNI) == 0 && len(userToLog.Email) != 0 {
 		return true, map[string]interface{}{"state": "Sesión inicada", "name": getUserName(userToLog.Email, "email"),
 			"userId": getUserId(userToLog.Email, "email"), "token": generateToken()}
@@ -111,12 +125,14 @@ func generateToken() string {
 			JWTID:			string(rand.Intn(100)),
 		},
 	}
+
 	//sign the token
 	token, err := jwt.Sign(pl, hs)
 	if err != nil {
 		fmt.Println(err)
 		return ""
 	}
+
 	//verify the token
 	var pl2 CustomPayload
 	_, err = jwt.Verify(token, hs, &pl2)
@@ -124,12 +140,20 @@ func generateToken() string {
 		fmt.Println(err)
 		return ""
 	}
+
+	//Enconde the []byte token to a string for the json
 	return hex.EncodeToString(token)
 }
 
-func isLogged(token string) bool{
-	tokenDecoded, _ := hex.DecodeString(token)
-	//validate
+func validateToken(token string) bool{
+
+	//Extract the Bearer expec from the data of the header
+	tokenData := strings.Replace(token, "Bearer ", "", -1)
+
+	//Decode the string token to a []byte
+	tokenDecoded, _ := hex.DecodeString(tokenData)
+
+	//validate the token
 	var (
 		now = time.Now()
 		aud = jwt.Audience{"https://golang.org", "https://jwt.io"}
