@@ -1,9 +1,8 @@
 package middleware
 
 import (
-
+	"TFG/API-REST/src/lib"
 	. "TFG/API-REST/src/structures"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/gbrlsnchs/jwt"
@@ -22,6 +21,7 @@ func UsersLogin(reqBody []byte, token string) (bool, map[string]interface{}) {
 
 	//Check if the token is valid
 	if validateToken(token){
+		lib.InfoLogger.Println("A user has logged in thanks to his token")
 		return true, map[string]interface{}{"state": "Sesión iniciada"}
 	}
 
@@ -33,19 +33,23 @@ func UsersLogin(reqBody []byte, token string) (bool, map[string]interface{}) {
 	//Verify that the DNI or the Email
 	if len(userToLog.DNI) == 0 && len(userToLog.Email) != 0{
 		if !checkIfExists(userToLog.Email, "email"){
+			lib.WarningLogger.Println("The email doesn't exist")
 			return false, map[string]interface{}{"state": "El usuario no existe"}
 
 		//If exists check if the password is correct
 		} else if bool, response := checkIfPassswordIsCorrect(userToLog.Email, userToLog.Password); !bool{
+			lib.WarningLogger.Println("The password is incorrect")
 			return false, map[string]interface{}{"state": response}
 		}
 	} else if len(userToLog.DNI) != 0 && len(userToLog.Email) == 0 {
 		if !checkIfExists(userToLog.DNI, "dni"){
+			lib.WarningLogger.Println("The DNI doesn't exist")
 			return false, map[string]interface{}{"state": "El usuario no existe"}
 		}
 
 		//If exists check if the password is correct
 		if bool, response := checkIfPassswordIsCorrect(userToLog.DNI, userToLog.Password); !bool{
+			lib.WarningLogger.Println("The password is incorrect")
 			return false, map[string]interface{}{"state": response}
 		}
 	}
@@ -53,9 +57,11 @@ func UsersLogin(reqBody []byte, token string) (bool, map[string]interface{}) {
 	//Return true with a msg of correct login,
 	//the name of the user and the position
 	if len(userToLog.DNI) == 0 && len(userToLog.Email) != 0 {
+		lib.InfoLogger.Println("User logged with the email: %v", userToLog.Email)
 		return true, map[string]interface{}{"state": "Sesión inicada", "name": getUserName(userToLog.Email, "email"),
 			"userId": getUserId(userToLog.Email, "email"), "token": generateToken()}
 	} else {
+		lib.InfoLogger.Println("User logged with the DNI: %v", userToLog.DNI)
 		return true, map[string]interface{}{"state": "Sesión inicada", "name": getUserName(userToLog.DNI, "dni"),
 			"userId": getUserId(userToLog.DNI, "dni"), "token": generateToken()}
 	}
@@ -129,7 +135,7 @@ func generateToken() string {
 	//sign the token
 	token, err := jwt.Sign(pl, hs)
 	if err != nil {
-		fmt.Println(err)
+		lib.ErrorLogger.Println("Error in generating the token: %v", err)
 		return ""
 	}
 
@@ -142,7 +148,7 @@ func generateToken() string {
 	}
 
 	//Enconde the []byte token to a string for the json
-	return hex.EncodeToString(token)
+	return string(token)
 }
 
 func validateToken(token string) bool{
@@ -151,7 +157,7 @@ func validateToken(token string) bool{
 	tokenData := strings.Replace(token, "Bearer ", "", -1)
 
 	//Decode the string token to a []byte
-	tokenDecoded, _ := hex.DecodeString(tokenData)
+	tokenInBytes := []byte(tokenData)
 
 	//validate the token
 	var (
@@ -169,9 +175,9 @@ func validateToken(token string) bool{
 		pl              CustomPayload
 		validatePayload = jwt.ValidatePayload(&pl.Payload, iatValidator, expValidator, audValidator, nbValidator)
 	)
-	_, err := jwt.Verify(tokenDecoded, hs, &pl, validatePayload)
+	_, err := jwt.Verify(tokenInBytes, hs, &pl, validatePayload)
 	if err != nil {
-		fmt.Println(err)
+		lib.ErrorLogger.Println("Token not valid")
 		return false
 	}
 	return true

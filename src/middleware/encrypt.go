@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"TFG/API-REST/src/lib"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -54,7 +55,7 @@ func ComparePwdAndHash(pwd, pwdHashed string) bool{
 	//Encrypt the inserted password
 	cipherPwd, err := encryptPwd(pwd)
 	if err != nil {
-		fmt.Println(err)
+		lib.ErrorLogger.Println("could not ecrypt the password: %v", err)
 		return false
 	}
 

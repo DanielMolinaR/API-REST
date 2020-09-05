@@ -51,7 +51,7 @@ func SelectQueryPwd(db *pgxpool.Pool, sqlStatement, data string) (string) {
 	//It means that the password is saved
 	err := db.QueryRow(context.Background(), sqlStatement, data).Scan(&password)
 	if err != nil {
-		fmt.Println(err)
+		ErrorLogger.Println("Error with the query: %v", err)
 		return ""
 	}
 
@@ -63,7 +63,7 @@ func SelectQuery(db *pgxpool.Pool, sqlStatement, data string) (bool) {
 
 	err := db.QueryRow(context.Background(), sqlStatement, data).Scan(&dni)
 	if err != nil {
-		fmt.Println(err)
+		ErrorLogger.Println("Error with the query: %v", err)
 		return false
 	}
 	return true
@@ -83,7 +83,7 @@ func SelectUserDataQuery(db *pgxpool.Pool, sqlStatement, data string) map[string
 	err := db.QueryRow(context.Background(), sqlStatement, data).Scan(&dni, &email,
 		&password, &name, &surname, &phone)
 	if err != nil {
-		fmt.Println(err)
+		ErrorLogger.Println("Error with the query: %v", err)
 		return map[string]interface{}{"error": err}
 	}
 
@@ -99,7 +99,7 @@ func SelectEmployeeDataQuery(db *pgxpool.Pool, sqlStatement, data string) (bool,
 	//It means that the password is saved
 	err := db.QueryRow(context.Background(), sqlStatement, data).Scan(&admin, &active)
 	if err != nil {
-		fmt.Println(err)
+		ErrorLogger.Println("Error with the query: %v", err)
 		return false, false
 	}
 	return active, admin

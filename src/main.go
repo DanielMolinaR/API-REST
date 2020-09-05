@@ -11,11 +11,6 @@ import (
 	"net/http"
 )
 
-func Homelink (w http.ResponseWriter, r *http.Request) {
-	fmt.Println(r.Method, r.Host)
-	fmt.Fprintf(w, "Welcome home!")
-}
-
 func Login (w http.ResponseWriter, r *http.Request) {
 	fmt.Println(r.Method, r.Host)
 
@@ -76,7 +71,6 @@ func main() {
 	//routes
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", Login).Methods("POST", "OPTIONS")
-	router.HandleFunc("/home", Homelink).Methods("GET")
 	router.HandleFunc("/employee-signIn", employeeSignIn).Methods("POST")
 	router.HandleFunc("/patient-signIn", patientSignIn).Methods("POST")
 	handler := cors.Default().Handler(router)
