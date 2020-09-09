@@ -1,0 +1,199 @@
+[INFO]  2020/09/07 12:42:25 A user has logged in thanks to his token
+[WARN]  2020/09/07 12:42:52 Token not valid
+[INFO]  2020/09/07 12:42:54 User logged with the DNI: ****** 91E
+[TRACE] 2020/09/07 12:42:54 Checking if the user is a patient or not
+[WARN]  2020/09/07 12:42:54 Error with the query:  no rows in result set
+[INFO]  2020/09/07 12:42:54 The user is admin
+[WARN]  2020/09/09 19:24:35 Token not valid
+[TRACE] 2020/09/09 19:24:35 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:24:37 Successfully connected to the DB!
+[WARN]  2020/09/09 19:24:37 The password is incorrect
+[WARN]  2020/09/09 19:24:43 Token not valid
+[TRACE] 2020/09/09 19:24:43 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:24:44 Successfully connected to the DB!
+[INFO]  2020/09/09 19:24:44 User logged with the DNI: ****** 91E
+[TRACE] 2020/09/09 19:24:44 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:24:44 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:24:44 Checking if the user is a patient or not
+[WARN]  2020/09/09 19:24:44 Error with the query: no rows in result set
+[TRACE] 2020/09/09 19:24:44 Successfully connected to the DB!
+[INFO]  2020/09/09 19:24:44 The user is admin
+[WARN]  2020/09/09 19:36:12 Token not valid
+[TRACE] 2020/09/09 19:36:12 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:36:12 Successfully connected to the DB!
+[INFO]  2020/09/09 19:36:12 User logged with the DNI: ****** 91E
+[TRACE] 2020/09/09 19:36:12 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:36:13 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:36:13 Checking if the user is a patient or not
+[WARN]  2020/09/09 19:36:13 Error with the query: no rows in result set
+[TRACE] 2020/09/09 19:36:13 Successfully connected to the DB!
+[INFO]  2020/09/09 19:36:13 The user is admin
+[WARN]  2020/09/09 19:37:06 Token not valid
+[TRACE] 2020/09/09 19:37:06 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:37:06 Successfully connected to the DB!
+[INFO]  2020/09/09 19:37:06 User logged with the DNI: ****** 91E
+[TRACE] 2020/09/09 19:37:07 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:37:07 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:37:07 Checking if the user is a patient or not
+[WARN]  2020/09/09 19:37:07 Error with the query: no rows in result set
+[TRACE] 2020/09/09 19:37:07 Successfully connected to the DB!
+[INFO]  2020/09/09 19:37:07 The user is admin
+[WARN]  2020/09/09 19:38:13 Token not valid
+[TRACE] 2020/09/09 19:38:13 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:38:13 Successfully connected to the DB!
+[INFO]  2020/09/09 19:38:13 User logged with the DNI: ****** 91E
+[TRACE] 2020/09/09 19:38:13 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:38:14 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:38:14 Checking if the user is a patient or not
+[WARN]  2020/09/09 19:38:14 Error with the query: no rows in result set
+[TRACE] 2020/09/09 19:38:14 Successfully connected to the DB!
+[INFO]  2020/09/09 19:38:14 The user is admin
+[WARN]  2020/09/09 19:43:52 Token not valid
+[TRACE] 2020/09/09 19:43:52 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:43:53 Successfully connected to the DB!
+[INFO]  2020/09/09 19:43:53 User logged with the DNI: ****** 91E
+[TRACE] 2020/09/09 19:43:53 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:43:53 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:43:53 Checking if the user is a patient or not
+[WARN]  2020/09/09 19:43:53 Error with the query: no rows in result set
+[TRACE] 2020/09/09 19:43:53 Successfully connected to the DB!
+[INFO]  2020/09/09 19:43:53 The user is admin
+[WARN]  2020/09/09 19:46:31 Token not valid
+[TRACE] 2020/09/09 19:46:31 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:46:31 Successfully connected to the DB!
+[INFO]  2020/09/09 19:46:31 User logged with the DNI: ****** 91E
+[TRACE] 2020/09/09 19:46:32 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:46:32 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:46:32 Checking if the user is a patient or not
+[WARN]  2020/09/09 19:46:32 Error with the query: no rows in result set
+[TRACE] 2020/09/09 19:46:32 Successfully connected to the DB!
+[INFO]  2020/09/09 19:46:32 The user is admin
+[WARN]  2020/09/09 19:49:57 Token not valid
+[TRACE] 2020/09/09 19:49:57 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:49:57 Successfully connected to the DB!
+[WARN]  2020/09/09 19:49:57 The password is incorrect
+[WARN]  2020/09/09 19:50:03 Token not valid
+[TRACE] 2020/09/09 19:50:04 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:50:04 Successfully connected to the DB!
+[INFO]  2020/09/09 19:50:04 User logged with the DNI: ****** 91E
+[TRACE] 2020/09/09 19:50:04 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:50:04 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:50:04 Checking if the user is a patient or not
+[WARN]  2020/09/09 19:50:04 Error with the query: no rows in result set
+[TRACE] 2020/09/09 19:50:04 Successfully connected to the DB!
+[INFO]  2020/09/09 19:50:04 The user is admin
+[WARN]  2020/09/09 19:51:50 Token not valid
+[TRACE] 2020/09/09 19:51:50 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:51:50 Successfully connected to the DB!
+[INFO]  2020/09/09 19:51:50 User logged with the DNI: ****** 91E
+[TRACE] 2020/09/09 19:51:50 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:51:51 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:51:51 Checking if the user is a patient or not
+[WARN]  2020/09/09 19:51:51 Error with the query: no rows in result set
+[TRACE] 2020/09/09 19:51:51 Successfully connected to the DB!
+[INFO]  2020/09/09 19:51:51 The user is admin
+[WARN]  2020/09/09 19:52:17 Token not valid
+[TRACE] 2020/09/09 19:52:17 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:52:17 Successfully connected to the DB!
+[WARN]  2020/09/09 19:52:17 The password is incorrect
+[WARN]  2020/09/09 19:53:46 Token not valid
+[TRACE] 2020/09/09 19:53:46 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:53:47 Successfully connected to the DB!
+[INFO]  2020/09/09 19:53:47 User logged with the DNI: ****** 91E
+[TRACE] 2020/09/09 19:53:47 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:53:47 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:53:47 Checking if the user is a patient or not
+[WARN]  2020/09/09 19:53:47 Error with the query: no rows in result set
+[TRACE] 2020/09/09 19:53:47 Successfully connected to the DB!
+[INFO]  2020/09/09 19:53:47 The user is admin
+[WARN]  2020/09/09 19:54:56 Token not valid
+[TRACE] 2020/09/09 19:54:57 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:54:57 Successfully connected to the DB!
+[INFO]  2020/09/09 19:54:57 User logged with the DNI: ****** 91E
+[TRACE] 2020/09/09 19:54:57 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:54:57 Successfully connected to the DB!
+[TRACE] 2020/09/09 19:54:57 Checking if the user is a patient or not
+[WARN]  2020/09/09 19:54:57 Error with the query: no rows in result set
+[TRACE] 2020/09/09 19:54:57 Successfully connected to the DB!
+[INFO]  2020/09/09 19:54:57 The user is admin
+[WARN]  2020/09/09 20:00:28 Token not valid
+[TRACE] 2020/09/09 20:00:28 Successfully connected to the DB!
+[TRACE] 2020/09/09 20:00:29 Successfully connected to the DB!
+[INFO]  2020/09/09 20:00:29 User logged with the DNI: ****** 91E
+[TRACE] 2020/09/09 20:00:29 Successfully connected to the DB!
+[TRACE] 2020/09/09 20:00:29 Successfully connected to the DB!
+[TRACE] 2020/09/09 20:00:29 Checking if the user is a patient or not
+[WARN]  2020/09/09 20:00:29 Error with the query: no rows in result set
+[TRACE] 2020/09/09 20:00:29 Successfully connected to the DB!
+[INFO]  2020/09/09 20:00:29 The user is admin
+[WARN]  2020/09/09 20:01:22 Token not valid
+[TRACE] 2020/09/09 20:01:22 Successfully connected to the DB!
+[TRACE] 2020/09/09 20:01:22 Successfully connected to the DB!
+[INFO]  2020/09/09 20:01:22 User logged with the DNI: ****** 91E
+[TRACE] 2020/09/09 20:01:23 Successfully connected to the DB!
+[TRACE] 2020/09/09 20:01:23 Successfully connected to the DB!
+[TRACE] 2020/09/09 20:01:23 Checking if the user is a patient or not
+[WARN]  2020/09/09 20:01:23 Error with the query: no rows in result set
+[TRACE] 2020/09/09 20:01:23 Successfully connected to the DB!
+[INFO]  2020/09/09 20:01:23 The user is admin
+[WARN]  2020/09/09 20:03:15 Token not valid
+[TRACE] 2020/09/09 20:03:15 Successfully connected to the DB!
+[TRACE] 2020/09/09 20:03:15 Successfully connected to the DB!
+[INFO]  2020/09/09 20:03:15 User logged with the DNI: ****** 91E
+[TRACE] 2020/09/09 20:03:15 Successfully connected to the DB!
+[TRACE] 2020/09/09 20:03:15 Successfully connected to the DB!
+[TRACE] 2020/09/09 20:03:15 Checking if the user is a patient or not
+[WARN]  2020/09/09 20:03:15 Error with the query: no rows in result set
+[TRACE] 2020/09/09 20:03:16 Successfully connected to the DB!
+[INFO]  2020/09/09 20:03:16 The user is admin
+[INFO]  2020/09/09 20:05:40 A user has logged in thanks to his token
+[WARN]  2020/09/09 20:05:49 Token not valid
+[TRACE] 2020/09/09 20:05:49 Successfully connected to the DB!
+[TRACE] 2020/09/09 20:05:49 Successfully connected to the DB!
+[INFO]  2020/09/09 20:05:49 User logged with the DNI: ****** 91E
+[TRACE] 2020/09/09 20:05:49 Successfully connected to the DB!
+[TRACE] 2020/09/09 20:05:49 Successfully connected to the DB!
+[TRACE] 2020/09/09 20:05:49 Checking if the user is a patient or not
+[WARN]  2020/09/09 20:05:49 Error with the query: no rows in result set
+[TRACE] 2020/09/09 20:05:50 Successfully connected to the DB!
+[INFO]  2020/09/09 20:05:50 The user is admin
+[WARN]  2020/09/09 20:06:47 Token not valid
+[TRACE] 2020/09/09 20:06:47 Successfully connected to the DB!
+[TRACE] 2020/09/09 20:06:47 Successfully connected to the DB!
+[INFO]  2020/09/09 20:06:47 User logged with the DNI: ****** 91E
+[TRACE] 2020/09/09 20:06:47 Successfully connected to the DB!
+[TRACE] 2020/09/09 20:06:48 Successfully connected to the DB!
+[TRACE] 2020/09/09 20:06:48 Checking if the user is a patient or not
+[WARN]  2020/09/09 20:06:48 Error with the query: no rows in result set
+[TRACE] 2020/09/09 20:06:48 Successfully connected to the DB!
+[INFO]  2020/09/09 20:06:48 The user is admin
+[WARN]  2020/09/09 20:30:22 Token not valid
+[TRACE] 2020/09/09 20:30:22 Successfully connected to the DB!
+[TRACE] 2020/09/09 20:30:22 Successfully connected to the DB!
+[INFO]  2020/09/09 20:30:22 User logged with the DNI: ****** 91E
+[TRACE] 2020/09/09 20:30:22 Successfully connected to the DB!
+[TRACE] 2020/09/09 20:30:22 Successfully connected to the DB!
+[TRACE] 2020/09/09 20:30:22 Checking if the user is a patient or not
+[WARN]  2020/09/09 20:30:22 Error with the query: no rows in result set
+[TRACE] 2020/09/09 20:30:23 Successfully connected to the DB!
+[INFO]  2020/09/09 20:30:23 The user is admin
+[WARN]  2020/09/09 20:33:39 Token not valid
+[TRACE] 2020/09/09 20:33:39 Successfully connected to the DB!
+[TRACE] 2020/09/09 20:33:39 Successfully connected to the DB!
+[INFO]  2020/09/09 20:33:39 User logged with the DNI: ****** 91E
+[TRACE] 2020/09/09 20:33:39 Successfully connected to the DB!
+[TRACE] 2020/09/09 20:33:39 Successfully connected to the DB!
+[TRACE] 2020/09/09 20:33:39 Checking if the user is a patient or not
+[WARN]  2020/09/09 20:33:39 Error with the query: no rows in result set
+[TRACE] 2020/09/09 20:33:40 Successfully connected to the DB!
+[INFO]  2020/09/09 20:33:40 The user is admin
+[WARN]  2020/09/09 20:38:19 Token not valid
+[TRACE] 2020/09/09 20:38:20 Successfully connected to the DB!
+[TRACE] 2020/09/09 20:38:20 Successfully connected to the DB!
+[INFO]  2020/09/09 20:38:20 User logged with the DNI: ****** 91E
+[TRACE] 2020/09/09 20:38:20 Successfully connected to the DB!
+[TRACE] 2020/09/09 20:38:20 Successfully connected to the DB!
+[TRACE] 2020/09/09 20:38:20 Checking if the user is a patient or not
+[WARN]  2020/09/09 20:38:20 Error with the query: no rows in result set
+[TRACE] 2020/09/09 20:38:20 Successfully connected to the DB!
+[INFO]  2020/09/09 20:38:20 The user is admin

@@ -1,23 +1,25 @@
 package lib
 
 import (
-	"log"
+	"github.com/withmandala/go-log"
 	"os"
 )
 
 var (
-	WarningLogger *log.Logger
-	InfoLogger    *log.Logger
-	ErrorLogger   *log.Logger
+	TerminalLogger	  *log.Logger
+	DocuLogger		  *log.Logger
 )
 
 func init() {
-	file, err := os.OpenFile("logs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	file, err := os.OpenFile("API-REST/logs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
-		log.Fatal(err)
+		TerminalLogger.Fatal(err)
 	}
 
-	InfoLogger = log.New(file, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
-	WarningLogger = log.New(file, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
-	ErrorLogger = log.New(file, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+	//One logger will write on terminal with different colors
+	TerminalLogger = log.New(os.Stderr).WithDebug().WithColor().WithTimestamp()
+
+	//The other logger will write on a txt
+	DocuLogger = log.New(file).WithTimestamp().WithDebug()
+
 }

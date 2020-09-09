@@ -64,9 +64,13 @@ func getUserName(data, condition string) string {
 
 func getUserId(data, condition string) string{
 	if isPatient(data, condition){
+		TerminalLogger.Info("The user is a patient")
+		DocuLogger.Info("The user is a patient")
 		return "patient"
 	}
 	if bool, response := isTrabajador(data, condition); bool{
+		TerminalLogger.Info("The user is", response)
+		DocuLogger.Info("The user is", response)
 		return response
 	}
 	return "employee suspended"
@@ -76,10 +80,9 @@ func isPatient(data, condition string) bool {
 	var db = ConectToDB()
 	sqlStatement := "SELECT " + condition + " FROM patients WHERE " + condition +" = $1"
 	//Do the query which return a bool if exists
-	if !SelectQuery(db, sqlStatement, data){
-		return false
-	}
-	return true
+	TerminalLogger.Trace("Checking if the user is a patient or not")
+	DocuLogger.Trace("Checking if the user is a patient or not")
+	return SelectQuery(db, sqlStatement, data)
 }
 
 func isTrabajador(data, condition string) (bool, string) {

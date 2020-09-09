@@ -37,10 +37,13 @@ func ConectToDB() *pgxpool.Pool {
 	//Create the connection pool
 	conn, err := pgxpool.ConnectConfig(context.Background(), config)
 	if err != nil {
-		fmt.Println(err)
+		TerminalLogger.Fatal("Couldn't connect to the database", err)
+		DocuLogger.Fatal("Couldn't connect to the database", err)
+		return nil
 	}
 
-	fmt.Println("Successfully connected!")
+	TerminalLogger.Trace("Successfully connected to the DB!")
+	DocuLogger.Trace("Successfully connected to the DB!")
 
 	return conn
 }
@@ -51,7 +54,8 @@ func SelectQueryPwd(db *pgxpool.Pool, sqlStatement, data string) (string) {
 	//It means that the password is saved
 	err := db.QueryRow(context.Background(), sqlStatement, data).Scan(&password)
 	if err != nil {
-		ErrorLogger.Println("Error with the query: %v", err)
+		TerminalLogger.Error("Error with the query: ", err)
+		DocuLogger.Error("Error with the query: ", err)
 		return ""
 	}
 
@@ -63,7 +67,8 @@ func SelectQuery(db *pgxpool.Pool, sqlStatement, data string) (bool) {
 
 	err := db.QueryRow(context.Background(), sqlStatement, data).Scan(&dni)
 	if err != nil {
-		ErrorLogger.Println("Error with the query: %v", err)
+		TerminalLogger.Warn("Error with the query:", err)
+		DocuLogger.Warn("Error with the query:", err)
 		return false
 	}
 	return true
@@ -83,7 +88,8 @@ func SelectUserDataQuery(db *pgxpool.Pool, sqlStatement, data string) map[string
 	err := db.QueryRow(context.Background(), sqlStatement, data).Scan(&dni, &email,
 		&password, &name, &surname, &phone)
 	if err != nil {
-		ErrorLogger.Println("Error with the query: %v", err)
+		TerminalLogger.Error("Error with the query:", err)
+		DocuLogger.Error("Error with the query:", err)
 		return map[string]interface{}{"error": err}
 	}
 
@@ -99,7 +105,8 @@ func SelectEmployeeDataQuery(db *pgxpool.Pool, sqlStatement, data string) (bool,
 	//It means that the password is saved
 	err := db.QueryRow(context.Background(), sqlStatement, data).Scan(&admin, &active)
 	if err != nil {
-		ErrorLogger.Println("Error with the query: %v", err)
+		TerminalLogger.Error("Error with the query:", err)
+		DocuLogger.Error("Error with the query:", err)
 		return false, false
 	}
 	return active, admin

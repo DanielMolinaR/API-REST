@@ -21,7 +21,8 @@ func UsersLogin(reqBody []byte, token string) (bool, map[string]interface{}) {
 
 	//Check if the token is valid
 	if validateToken(token){
-		lib.InfoLogger.Println("A user has logged in thanks to his token")
+		lib.TerminalLogger.Info("A user has logged in thanks to his token")
+		lib.DocuLogger.Info("A user has logged in thanks to his token")
 		return true, map[string]interface{}{"state": "Sesión iniciada"}
 	}
 
@@ -33,23 +34,27 @@ func UsersLogin(reqBody []byte, token string) (bool, map[string]interface{}) {
 	//Verify that the DNI or the Email
 	if len(userToLog.DNI) == 0 && len(userToLog.Email) != 0{
 		if !checkIfExists(userToLog.Email, "email"){
-			lib.WarningLogger.Println("The email doesn't exist")
+			lib.TerminalLogger.Warn("The email doesn't exist")
+			lib.DocuLogger.Warn("The email doesn't exist")
 			return false, map[string]interface{}{"state": "El usuario no existe"}
 
 		//If exists check if the password is correct
 		} else if bool, response := checkIfPassswordIsCorrect(userToLog.Email, userToLog.Password); !bool{
-			lib.WarningLogger.Println("The password is incorrect")
+			lib.TerminalLogger.Warn("The password is incorrect")
+			lib.DocuLogger.Warn("The password is incorrect")
 			return false, map[string]interface{}{"state": response}
 		}
 	} else if len(userToLog.DNI) != 0 && len(userToLog.Email) == 0 {
 		if !checkIfExists(userToLog.DNI, "dni"){
-			lib.WarningLogger.Println("The DNI doesn't exist")
+			lib.TerminalLogger.Warn("The DNI doesn't exist")
+			lib.DocuLogger.Warn("The DNI doesn't exist")
 			return false, map[string]interface{}{"state": "El usuario no existe"}
 		}
 
 		//If exists check if the password is correct
 		if bool, response := checkIfPassswordIsCorrect(userToLog.DNI, userToLog.Password); !bool{
-			lib.WarningLogger.Println("The password is incorrect")
+			lib.TerminalLogger.Warn("The password is incorrect")
+			lib.DocuLogger.Warn("The password is incorrect")
 			return false, map[string]interface{}{"state": response}
 		}
 	}
@@ -57,12 +62,14 @@ func UsersLogin(reqBody []byte, token string) (bool, map[string]interface{}) {
 	//Return true with a msg of correct login,
 	//the name of the user and the position
 	if len(userToLog.DNI) == 0 && len(userToLog.Email) != 0 {
-		lib.InfoLogger.Println("User logged with the email: %v", userToLog.Email)
-		return true, map[string]interface{}{"state": "Sesión inicada", "name": getUserName(userToLog.Email, "email"),
+		lib.TerminalLogger.Info("User logged with the email: ", userToLog.Email)
+		lib.DocuLogger.Info("User logged with the email: ", userToLog.Email)
+		return true, map[string]interface{}{"state": "Sesión inicada", "userName": getUserName(userToLog.Email, "email"),
 			"userId": getUserId(userToLog.Email, "email"), "token": generateToken()}
 	} else {
-		lib.InfoLogger.Println("User logged with the DNI: %v", userToLog.DNI)
-		return true, map[string]interface{}{"state": "Sesión inicada", "name": getUserName(userToLog.DNI, "dni"),
+		lib.TerminalLogger.Info("User logged with the DNI: ******", userToLog.DNI[6:])
+		lib.DocuLogger.Info("User logged with the DNI: ******", userToLog.DNI[6:])
+		return true, map[string]interface{}{"state": "Sesión inicada", "userName": getUserName(userToLog.DNI, "dni"),
 			"userId": getUserId(userToLog.DNI, "dni"), "token": generateToken()}
 	}
 }
@@ -135,7 +142,8 @@ func generateToken() string {
 	//sign the token
 	token, err := jwt.Sign(pl, hs)
 	if err != nil {
-		lib.ErrorLogger.Println("Error in generating the token: %v", err)
+		lib.TerminalLogger.Error("Error in generating the token: ", err)
+		lib.DocuLogger.Error("Error in generating the token: ", err)
 		return ""
 	}
 
@@ -177,7 +185,8 @@ func validateToken(token string) bool{
 	)
 	_, err := jwt.Verify(tokenInBytes, hs, &pl, validatePayload)
 	if err != nil {
-		lib.ErrorLogger.Println("Token not valid")
+		lib.TerminalLogger.Warn("Token not valid")
+		lib.DocuLogger.Warn("Token not valid")
 		return false
 	}
 	return true

@@ -7,7 +7,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -55,7 +54,8 @@ func ComparePwdAndHash(pwd, pwdHashed string) bool{
 	//Encrypt the inserted password
 	cipherPwd, err := encryptPwd(pwd)
 	if err != nil {
-		lib.ErrorLogger.Println("could not ecrypt the password: %v", err)
+		lib.TerminalLogger.Error("Could not ecrypt the password: ", err)
+		lib.DocuLogger.Error("Could not ecrypt the password: ", err)
 		return false
 	}
 
@@ -133,7 +133,8 @@ func decryptData(encryptedString string) (string, error) {
 func getTheDataKey() string {
 	dataconfig, err := os.Open("./API-REST/src/middleware/keys.json")
 	if err != nil {
-		fmt.Println(err)
+		lib.TerminalLogger.Error("Could not get the data key: ", err)
+		lib.DocuLogger.Error("Could not get the data key: ", err)
 	}
 	jsonBody, _ := ioutil.ReadAll(dataconfig)
 	var key Keys
@@ -145,7 +146,8 @@ func getTheDataKey() string {
 func getThePwdKey() (string, string) {
 	dataconfig, err := os.Open("./API-REST/src/middleware/keys.json")
 	if err != nil {
-		fmt.Println(err)
+		lib.TerminalLogger.Error("Could not get the pwd key: ", err)
+		lib.DocuLogger.Error("Could not get the pwd key: ", err)
 	}
 	jsonBody, _ := ioutil.ReadAll(dataconfig)
 	var key Keys
