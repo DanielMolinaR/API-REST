@@ -6,7 +6,7 @@ type Users struct{
 	Password 	string `json:"Password"`
 	Name 		string `json:"Name"`
 	Surname 	string `json:"Surname""`
-	Phone		string	`json:"Phone"`
+	Phone		string `json:"Phone"`
 }
 
 type Patient struct{

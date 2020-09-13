@@ -65,12 +65,12 @@ func UsersLogin(reqBody []byte, token string) (bool, map[string]interface{}) {
 		lib.TerminalLogger.Info("User logged with the email: ", userToLog.Email)
 		lib.DocuLogger.Info("User logged with the email: ", userToLog.Email)
 		return true, map[string]interface{}{"state": "Sesión inicada", "userName": getUserName(userToLog.Email, "email"),
-			"userId": getUserId(userToLog.Email, "email"), "token": generateToken()}
+			"userLevel": getUserLevel(userToLog.Email, "email"), "token": generateToken()}
 	} else {
 		lib.TerminalLogger.Info("User logged with the DNI: ******", userToLog.DNI[6:])
 		lib.DocuLogger.Info("User logged with the DNI: ******", userToLog.DNI[6:])
 		return true, map[string]interface{}{"state": "Sesión inicada", "userName": getUserName(userToLog.DNI, "dni"),
-			"userId": getUserId(userToLog.DNI, "dni"), "token": generateToken()}
+			"userLevel": getUserLevel(userToLog.DNI, "dni"), "token": generateToken()}
 	}
 }
 
@@ -190,4 +190,14 @@ func validateToken(token string) bool{
 		return false
 	}
 	return true
+}
+
+func getUserLevel (data, condition string) int{
+	if userId := getUserId(data, condition); userId == "patient"{
+		return 0
+	} else if userId == "employee"{
+		return 1
+	} else {
+		return 2
+	}
 }
