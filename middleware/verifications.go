@@ -147,4 +147,3 @@ func verifyPasswordIsSafe(s string) bool {
 	//If every value is true the password is safe
 	return hasMinLen && hasUpper && hasLower && hasNumber && hasSpecial && hasntSpace
 }
-

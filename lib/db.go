@@ -1,12 +1,12 @@
 package lib
 
 import (
-	"TFG/API-REST/src/structures"
+	"TFG/structures"
 	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/jackc/pgx/pgxpool"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"io/ioutil"
 	"os"
 )
@@ -71,6 +71,8 @@ func SelectQuery(db *pgxpool.Pool, sqlStatement, data string) (bool) {
 		DocuLogger.Warn("Error with the query:", err)
 		return false
 	}
+	TerminalLogger.Warn("The DNI has been found in the DDBB")
+	DocuLogger.Warn("The DNI has been found in the DDBB")
 	return true
 }
 
@@ -112,6 +114,28 @@ func SelectEmployeeDataQuery(db *pgxpool.Pool, sqlStatement, data string) (bool,
 	return active, admin
 }
 
+/*func selectAppointmentsQuery(db *pgxpool.Pool, sqlStatement, data string) (bool, pgx.Rows) {
+
+	rows, err := db.Query(context.Background(), sqlStatement, data)
+
+	if err != nil{
+		TerminalLogger.Warn("Error with the query:", err)
+		DocuLogger.Warn("Error with the query:", err)
+		return false, ""
+	}
+
+	//    for rows.Next() {
+	//        var n int32
+	//        err = rows.Scan(&n) escaneamos cada parametro de la base de datos
+	//        if err != nil {
+	//            return err
+	//        }
+	//		  la fecha (timestamp) la descomponemos en dia y hora
+	//        sum += n  añadimos los datos en una biblioteca o array y devolvemos esta
+	//    }
+
+}*/
+
 func InsertEmployeeQuery(db *pgxpool.Pool, sqlStatement string, employee structures.Employee) (bool){
 	_, err := db.Exec(context.Background(), sqlStatement, employee.Active, employee.Admin, employee.User.DNI,
 		employee.User.Email, employee.User.Password, employee.User.Name, employee.User.Surname, employee.User.Phone)
@@ -132,8 +156,6 @@ func InsertPatientQuery(db *pgxpool.Pool, sqlStatement string, patient structure
 	return true
 }
 
-
-
 func updateQuery(db *sql.DB){
 	sqlStatement := "UPDATE employee set name=($1), surname=($2) where dni=($3)"
 
@@ -151,3 +173,4 @@ func deleteQuery(db *sql.DB){
 		panic(err)
 	}
 }
+
