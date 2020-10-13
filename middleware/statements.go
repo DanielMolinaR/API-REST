@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	. "TFG/lib"
-	"TFG/structures"
+	. "TFG/API-REST/lib"
+	"TFG/API-REST/structures"
 )
 
 func checkIfPassswordIsCorrect(dni , insertedPwd string) (bool, string){

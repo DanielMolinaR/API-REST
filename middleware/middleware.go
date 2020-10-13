@@ -1,16 +1,11 @@
 package middleware
 
 import (
-	"TFG/lib"
-	. "TFG/structures"
+	"TFG/API-REST/lib"
+	. "TFG/API-REST/structures"
 	"encoding/json"
 )
 
-/*func ValidateToken(token string) {
-	claims := DecodeToken(token)
-
-
-}*/
 
 func UsersLogin(reqBody []byte) (bool, map[string]interface{}) {
 
@@ -20,14 +15,14 @@ func UsersLogin(reqBody []byte) (bool, map[string]interface{}) {
 	json.Unmarshal(reqBody, &userToLogIn)
 
 	//Verify the credentials login
- 	if ok, accessToken, refreshToken := UserCredentialsLogin(userToLogIn.DNI, userToLogIn.Password); !ok{
+ 	if false{
 		return false, map[string]interface{}{"state": "DNI o contraseña incorrecto"}
 	} else {
 		//Return true with a msg of correct login,
 		//the name of the user and the role
 		lib.TerminalLogger.Info("User logged with the DNI: ******", userToLogIn.DNI[6:])
 		lib.DocuLogger.Info("User logged with the DNI: ******", userToLogIn.DNI[6:])
-		return true, map[string]interface{}{"state": "Sesión iniciada", "Access token": accessToken, "Refresh token": refreshToken}
+		return true, map[string]interface{}{"state": "Sesión iniciada", "Access token": "accessToken", "Refresh token": "refreshToken"}
 	}
 
 }
@@ -84,7 +79,3 @@ func signInVerifications(dni, phone, email, password string) (bool, string){
 	return true, ""
 }
 
-/*func getUserRole (token string) string{
-	claims := DecodeToken(token)
-	role := claims
-}*/

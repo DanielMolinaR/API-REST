@@ -1,7 +1,7 @@
 package lib
 
 import (
-	"TFG/structures"
+	"TFG/API-REST/structures"
 	"context"
 	"database/sql"
 	"encoding/json"

@@ -1,8 +1,8 @@
 package main
 
 import (
-	. "TFG/lib"
-	"TFG/middleware"
+	. "TFG/API-REST/lib"
+	"TFG/API-REST/middleware"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
