@@ -19,8 +19,10 @@ type Conection struct{
 	Database string `json:"Database"`
 }
 
-func ConectToDB() *pgxpool.Pool {
-	dataconfig, err := os.Open("./API-REST/src/lib/conection.json")
+var db *pgxpool.Pool
+
+func init() {
+	dataconfig, err := os.Open("./API-REST/lib/conection.json")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -35,24 +37,19 @@ func ConectToDB() *pgxpool.Pool {
 	config.ConnConfig.Password = conection.Password
 	config.ConnConfig.Database = conection.Database
 	//Create the connection pool
-	conn, err := pgxpool.ConnectConfig(context.Background(), config)
+	db, err = pgxpool.ConnectConfig(context.Background(), config)
 	if err != nil {
-		TerminalLogger.Fatal("Couldn't connect to the database", err)
-		DocuLogger.Fatal("Couldn't connect to the database", err)
-		return nil
+		fmt.Println(err)
 	}
 
-	TerminalLogger.Trace("Successfully connected to the DB!")
-	DocuLogger.Trace("Successfully connected to the DB!")
-
-	return conn
 }
 
-func SelectQueryPwd(db *pgxpool.Pool, sqlStatement, data string) (string) {
+func SelectQueryPwd(sqlStatement, data string) (string) {
 	var password string
 	//Do the query and if It's correct
 	//It means that the password is saved
-	err := db.QueryRow(context.Background(), sqlStatement, data).Scan(&password)
+	rows, err := db.Query(context.Background(), sqlStatement, data)
+	rows.Scan(&password)
 	if err != nil {
 		TerminalLogger.Error("Error with the query: ", err)
 		DocuLogger.Error("Error with the query: ", err)
@@ -62,10 +59,11 @@ func SelectQueryPwd(db *pgxpool.Pool, sqlStatement, data string) (string) {
 	return password
 }
 
-func SelectQuery(db *pgxpool.Pool, sqlStatement, data string) (bool) {
+func SelectQuery(sqlStatement, data string) (bool) {
 	var dni string
 
-	err := db.QueryRow(context.Background(), sqlStatement, data).Scan(&dni)
+	rows, err := db.Query(context.Background(), sqlStatement, data)
+	rows.Scan(&dni)
 	if err != nil {
 		TerminalLogger.Warn("Error with the query:", err)
 		DocuLogger.Warn("Error with the query:", err)
@@ -76,7 +74,7 @@ func SelectQuery(db *pgxpool.Pool, sqlStatement, data string) (bool) {
 	return true
 }
 
-func SelectUserDataQuery(db *pgxpool.Pool, sqlStatement, data string) map[string]interface{} {
+func SelectUserDataQuery(sqlStatement, data string) map[string]interface{} {
 	var (
 		name string
 		email string
@@ -87,8 +85,8 @@ func SelectUserDataQuery(db *pgxpool.Pool, sqlStatement, data string) map[string
 	)
 	//Do the query and if It's correct
 	//It means that the password is saved
-	err := db.QueryRow(context.Background(), sqlStatement, data).Scan(&dni, &email,
-		&password, &name, &surname, &phone)
+	rows, err := db.Query(context.Background(), sqlStatement, data)
+	rows.Scan(&dni, &email, &password, &name, &surname, &phone)
 	if err != nil {
 		TerminalLogger.Error("Error with the query:", err)
 		DocuLogger.Error("Error with the query:", err)
@@ -98,14 +96,15 @@ func SelectUserDataQuery(db *pgxpool.Pool, sqlStatement, data string) map[string
 	return map[string]interface{}{"name": name, "email": email, "phone": phone, "surname": surname}
 }
 
-func SelectEmployeeDataQuery(db *pgxpool.Pool, sqlStatement, data string) (bool, bool) {
+func SelectEmployeeDataQuery(sqlStatement, data string) (bool, bool) {
 	var (
 		admin bool
 		active bool
 	)
 	//Do the query and if It's correct
 	//It means that the password is saved
-	err := db.QueryRow(context.Background(), sqlStatement, data).Scan(&admin, &active)
+	rows, err := db.Query(context.Background(), sqlStatement, data)
+	rows.Scan(&admin, &active)
 	if err != nil {
 		TerminalLogger.Error("Error with the query:", err)
 		DocuLogger.Error("Error with the query:", err)
@@ -136,7 +135,7 @@ func SelectEmployeeDataQuery(db *pgxpool.Pool, sqlStatement, data string) (bool,
 
 }*/
 
-func InsertEmployeeQuery(db *pgxpool.Pool, sqlStatement string, employee structures.Employee) (bool){
+func InsertEmployeeQuery(sqlStatement string, employee structures.Employee) (bool){
 	_, err := db.Exec(context.Background(), sqlStatement, employee.Active, employee.Admin, employee.User.DNI,
 		employee.User.Email, employee.User.Password, employee.User.Name, employee.User.Surname, employee.User.Phone)
 	if err != nil {
@@ -146,7 +145,7 @@ func InsertEmployeeQuery(db *pgxpool.Pool, sqlStatement string, employee structu
 	return true
 }
 
-func InsertPatientQuery(db *pgxpool.Pool, sqlStatement string, patient structures.Patient) (bool){
+func InsertPatientQuery(sqlStatement string, patient structures.Patient) (bool){
 	_, err := db.Exec(context.Background(), sqlStatement, patient.Age, patient.User.DNI, patient.User.Email,
 		patient.User.Password, patient.User.Name, patient.User.Surname, patient.User.Phone)
 	if err != nil {

@@ -12,20 +12,22 @@ func UsersLogin(reqBody []byte) (bool, map[string]interface{}) {
 	var userToLogIn Users
 
 	//The data from reqBody is filled in the newUser
-	json.Unmarshal(reqBody, &userToLogIn)
+	_ = json.Unmarshal(reqBody, &userToLogIn)
 
 	//Verify the credentials login
- 	if false{
+ 	if ok, accessToken, refreshToken := UserCredentialsLogin(userToLogIn.DNI, userToLogIn.Password); !ok{
 		return false, map[string]interface{}{"state": "DNI o contraseña incorrecto"}
 	} else {
 		//Return true with a msg of correct login,
-		//the name of the user and the role
+		//the name of the user, the tokens and the role
+		role := DecodeToken(accessToken)
 		lib.TerminalLogger.Info("User logged with the DNI: ******", userToLogIn.DNI[6:])
 		lib.DocuLogger.Info("User logged with the DNI: ******", userToLogIn.DNI[6:])
-		return true, map[string]interface{}{"state": "Sesión iniciada", "Access token": "accessToken", "Refresh token": "refreshToken"}
+		return true, map[string]interface{}{"state": "Sesión iniciada", "Access token": accessToken,
+			"Refresh token": refreshToken, "Roles": (*role)["realm_access"].(map[string]interface{})["roles"]}
 	}
-
 }
+
 
 func EmployeeSignInVerification(reqBody []byte) (bool, string){
 	var newEmployee Employee
@@ -77,5 +79,10 @@ func signInVerifications(dni, phone, email, password string) (bool, string){
 		return false, "La contraseña es muy débil"
 	}
 	return true, ""
+}
+
+func VerifyToken (token string) (bool){
+	//Calls the verify method
+	return Verify(token)
 }
 

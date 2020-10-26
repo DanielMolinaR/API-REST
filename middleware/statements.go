@@ -6,54 +6,49 @@ import (
 )
 
 func checkIfPassswordIsCorrect(dni , insertedPwd string) (bool, string){
-	//Conect to the DB
-	var db = ConectToDB()
 
 	sqlStatement := "SELECT password FROM users WHERE dni=$1"
 	//DO the select and return the password
-	_ = SelectQueryPwd(db, sqlStatement, dni)
+	_ = SelectQueryPwd(sqlStatement, dni)
 	//Check if the password is correct
 	return false, "Contraseña incorrecta"
 }
 
 
 func checkIfExists (data string) bool {
-	var (
-		db = ConectToDB()
-		sqlStatement string
-	)
-	sqlStatement = "SELECT dni FROM users WHERE dni = $1"
+
+	sqlStatement := "SELECT dni FROM users WHERE dni = $1"
 	//Do the query which return a bool if exists
-	if !SelectQuery(db, sqlStatement, data){
+	if !SelectQuery(sqlStatement, data){
 		return false
 	}
 	return true
 }
 
 func DoEmployeeInsert(employee structures.Employee) bool {
-	var db = ConectToDB()
+
 	sqlStatement := "INSERT INTO employee (active, admin, dni, email, password, Name, Surname, phone) " +
 		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"
 	var answer bool
 	if !answer{
 		return false
 	}
-	response := InsertEmployeeQuery(db, sqlStatement, employee)
+	response := InsertEmployeeQuery(sqlStatement, employee)
 	return response
 }
 
 func DoPatientInsert(patient structures.Patient) bool {
-	var db = ConectToDB()
+
 	sqlStatement := "INSERT INTO patients (age, dni, email, password, Name, Surname, phone) " +
 		"VALUES ($1, $2, $3, $4, $5, $6, $7)"
-	response := InsertPatientQuery(db, sqlStatement, patient)
+	response := InsertPatientQuery(sqlStatement, patient)
 	return response
 }
 
 func getUserName(data, condition string) string {
-	var db = ConectToDB()
+
 	sqlStatement := "SELECT * FROM users WHERE " + condition +" = $1"
-	userData := SelectUserDataQuery(db, sqlStatement, data)
+	userData := SelectUserDataQuery(sqlStatement, data)
 	response := userData["name"].(string)
 	return response
 }
@@ -73,19 +68,19 @@ func getUserId(data, condition string) string{
 }
 
 func isPatient(data, condition string) bool {
-	var db = ConectToDB()
+
 	sqlStatement := "SELECT " + condition + " FROM patients WHERE " + condition +" = $1"
 	//Do the query which return a bool if exists
 	TerminalLogger.Trace("Checking if the user is a patient or not")
 	DocuLogger.Trace("Checking if the user is a patient or not")
-	return SelectQuery(db, sqlStatement, data)
+	return SelectQuery(sqlStatement, data)
 }
 
 func isTrabajador(data, condition string) (bool, string) {
-	var db = ConectToDB()
+
 	sqlStatement := "SELECT admin, active FROM employee WHERE " + condition +" = $1"
 	//Do the query which return a bool if exists
-	if active, admin := SelectEmployeeDataQuery(db, sqlStatement, data); active{
+	if active, admin := SelectEmployeeDataQuery(sqlStatement, data); active{
 		if admin {
 			return true, "admin"
 		}

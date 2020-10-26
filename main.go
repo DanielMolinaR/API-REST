@@ -13,9 +13,8 @@ import (
 )
 
 func Login (w http.ResponseWriter, r *http.Request) {
-	TerminalLogger.Info("An user is trying to login")
-	DocuLogger.Info("An user is trying to login")
-	fmt.Println(r.Method, r.Host)
+	TerminalLogger.Info("An user is trying to login from: ", r.Host)
+	DocuLogger.Info("An user is trying to login from: ", r.Host)
 
 	//Read the authorization header
 	tokenString := r.Header.Get("Authorization")
@@ -23,31 +22,33 @@ func Login (w http.ResponseWriter, r *http.Request) {
 	//Extract the Bearer expecification from the data of the header
 	token := strings.Replace(tokenString, "Bearer ", "", -1)
 
-	//Check if the token is valid
-	if (len(token)!=0){ //if token no vacio se valida el token
-		TerminalLogger.Info("The user has logged in thanks to his token")
-		DocuLogger.Info("The user has logged in thanks to his token")
-		response := map[string]interface{}{"state": "Sesión iniciada por token"}
-		w.WriteHeader(http.StatusAccepted)
-		json.NewEncoder(w).Encode(response)
-	} else {
-
-		// Convert r.Body into a readable formart
-		reqBody, err := ioutil.ReadAll(r.Body)
-		if err == nil {
-
-			//In UsersLogin the user data is verified
-			if bool, response := middleware.UsersLogin(reqBody); !bool {
-				w.WriteHeader(http.StatusPreconditionFailed)
-				json.NewEncoder(w).Encode(response)
-			} else {
-				w.WriteHeader(http.StatusAccepted)
-				json.NewEncoder(w).Encode(response)
-			}
-		} else {
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(err)
+	//Check if the user has a token
+	if len(token)!=0{
+		
+		//Check if the token is valid
+		if middleware.VerifyToken(token){
+			TerminalLogger.Info("The user has logged in thanks to his token")
+			DocuLogger.Info("The user has logged in thanks to his token")
+			response := map[string]interface{}{"state": "Sesión iniciada gracias al token"}
+			w.WriteHeader(http.StatusAccepted)
+			_ = json.NewEncoder(w).Encode(response)
 		}
+	}
+
+	// Convert r.Body into a readable formart
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err == nil {
+		//In UsersLogin the user data is verified
+		if ok, response := middleware.UsersLogin(reqBody); !ok {
+			w.WriteHeader(http.StatusPreconditionFailed)
+			_ = json.NewEncoder(w).Encode(response)
+		} else {
+			w.WriteHeader(http.StatusAccepted)
+			_ =json.NewEncoder(w).Encode(response)
+		}
+	} else {
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(err)
 	}
 }
 
@@ -62,9 +63,9 @@ func employeeSignIn(w http.ResponseWriter,r *http.Request){
 	if err == nil {
 		//In EmployeeSignInVerification the user
 		//is created with data and verified
-		if	bool, response := middleware.EmployeeSignInVerification(reqBody); !bool{
+		if	ok, response := middleware.EmployeeSignInVerification(reqBody); !ok{
 			response = "No se ha podido crear el usuario: " + response
-			json.NewEncoder(w).Encode(response)
+			_ = json.NewEncoder(w).Encode(response)
 		} else {
 			fmt.Fprintf(w, response)
 		}
