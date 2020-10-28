@@ -62,12 +62,17 @@ func SelectQueryPwd(sqlStatement, data string) (string) {
 func SelectQuery(sqlStatement, data string) (bool) {
 	var dni string
 
-	rows, err := db.Query(context.Background(), sqlStatement, data)
-	rows.Scan(&dni)
-	if err != nil {
-		TerminalLogger.Warn("Error with the query:", err)
-		DocuLogger.Warn("Error with the query:", err)
-		return false
+	rows := db.QueryRow(context.Background(), sqlStatement, data).Scan(&dni)
+	if rows != nil {
+		if dni == ""{
+			TerminalLogger.Info("The DNI doesnt exists in the DDBB")
+			DocuLogger.Info("The DNI doesnt exists in the DDBB")
+			return false
+		} else {
+			TerminalLogger.Warn("Error with the query: ", rows.Error())
+			DocuLogger.Warn("Error with the query: ", rows.Error())
+			return true
+		}
 	}
 	TerminalLogger.Warn("The DNI has been found in the DDBB")
 	DocuLogger.Warn("The DNI has been found in the DDBB")
@@ -137,9 +142,10 @@ func SelectEmployeeDataQuery(sqlStatement, data string) (bool, bool) {
 
 func InsertEmployeeQuery(sqlStatement string, employee structures.Employee) (bool){
 	_, err := db.Exec(context.Background(), sqlStatement, employee.Active, employee.Admin, employee.User.DNI,
-		employee.User.Email, employee.User.Password, employee.User.Name, employee.User.Surname, employee.User.Phone)
+		employee.User.Email, employee.User.Name, employee.User.Surname, employee.User.Phone)
 	if err != nil {
-		fmt.Println(err)
+		TerminalLogger.Info("Something went wrong", err)
+		DocuLogger.Info("Something went wrong", err)
 		return false
 	}
 	return true
@@ -147,7 +153,7 @@ func InsertEmployeeQuery(sqlStatement string, employee structures.Employee) (boo
 
 func InsertPatientQuery(sqlStatement string, patient structures.Patient) (bool){
 	_, err := db.Exec(context.Background(), sqlStatement, patient.Age, patient.User.DNI, patient.User.Email,
-		patient.User.Password, patient.User.Name, patient.User.Surname, patient.User.Phone)
+		patient.User.Name, patient.User.Surname, patient.User.Phone)
 	if err != nil {
 		fmt.Println(err)
 		return false

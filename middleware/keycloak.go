@@ -40,22 +40,22 @@ func init() {
 
 }
 
-func getAdminToken() *gocloak.JWT {
+func getAdminToken() string {
 
 	token, err := client.LoginAdmin(ctx, data.AdminName, data.AdminPwd, data.AdminRealm)
 
 	if err != nil {
 		lib.TerminalLogger.Info("Problems with the admin login in keycloak", err)
 		lib.DocuLogger.Info("Problems with the admin login in keycloak", err)
-		return nil
+		return ""
 	}
 
-	return token
+	return token.AccessToken
 }
 
-func UserCredentialsLogin(username, password string) (bool, string, string) {
+func UserCredentialsLogin(userDni, password string) (bool, string, string) {
 
-	userToken, err := client.Login(ctx, data.ClientId, data.Secret, data.UserRealm, username, password)
+	userToken, err := client.Login(ctx, data.ClientId, data.Secret, data.UserRealm, userDni, password)
 
 	if err != nil{
 		lib.TerminalLogger.Info("Problem with the login in keycloak", err)
@@ -66,42 +66,75 @@ func UserCredentialsLogin(username, password string) (bool, string, string) {
 	return true, userToken.AccessToken, userToken.RefreshToken
 }
 
-func CreateUser(username, password, role string) string {
+func CreateUser(userDni, password, role string) bool {
 
-	adminToken := getAdminToken()
-
-	if adminToken != nil{
-
-		user := gocloak.User{
-			Email:     gocloak.StringP("something@really.wrong"),
-			Enabled:   gocloak.BoolP(true),
-			Username:  gocloak.StringP(username),
-			Credentials: &[]gocloak.CredentialRepresentation{
-				{
-					Temporary: gocloak.BoolP(false),
-					Type:      gocloak.StringP("password"),
-					Value:     gocloak.StringP(password),
-				},
+	user := gocloak.User{
+		Enabled:   gocloak.BoolP(true),
+		Username:  gocloak.StringP(userDni),
+		Credentials: &[]gocloak.CredentialRepresentation{
+			{
+				Temporary: gocloak.BoolP(false),
+				Type:      gocloak.StringP("password"),
+				Value:     gocloak.StringP(password),
 			},
-			RealmRoles: &[]string{role},
-		}
-		answer, err := client.CreateUser(ctx, adminToken.AccessToken, data.UserRealm, user)
-		if err != nil {
-			lib.TerminalLogger.Info("Problem sign in the user", err)
-			lib.DocuLogger.Info("Problem sign in the user", err)
-			return answer
-		}
-	} else {
-		return "Imposible to login as administrator"
+		},
 	}
-	return ""
+
+	userId, err := client.CreateUser(ctx, getAdminToken(), data.UserRealm, user)
+	if err != nil {
+		lib.TerminalLogger.Info("Something went wrong", err)
+		lib.DocuLogger.Info("Something went wrong", err)
+		return false
+	}
+	if !updateUserRole(userDni, password, role, userId){
+		deleteUser(userDni, password, userId)
+		return false
+	}
+	lib.TerminalLogger.Info("User created, answer: ")
+	lib.DocuLogger.Info("User created, answer: ")
+	return true
+}
+
+func updateUserRole(userDni, password, role, userId string) bool{
+	//As we cant create an user with a role for problems that keycloak has
+	//we have to update the user. We need to take the ID from the user.
+	roleObject, err := client.GetRealmRole(ctx, getAdminToken(), data.UserRealm, role)
+
+	var roles []gocloak.Role
+	roles = append(roles, *roleObject)
+
+	err = client.AddRealmRoleToUser(ctx, getAdminToken(), data.UserRealm, userId, roles)
+	if err != nil{
+		lib.TerminalLogger.Info("Something went wrong updating the user role: ", err)
+		lib.DocuLogger.Info("Something went wrong updating the user role: ", err)
+		return false
+	}
+	return true
+}
+
+func deleteUser(userDni, password, userId string) bool{
+
+	err := client.DeleteUser(ctx, getAdminToken(), data.UserRealm, userId)
+	if err != nil{
+		return false
+	}
+	return true
+}
+
+func getUserId(userDni, password string) string{
+	_, token, _ := UserCredentialsLogin(userDni, password)
+	userInfo, err := client.GetUserInfo(ctx, token, data.UserRealm)
+	if err != nil{
+		lib.TerminalLogger.Info("Couldnt get the info from the user bacause: ", err)
+		lib.DocuLogger.Info("Couldnt get the info from the user bacause: ", err)
+		return ""
+	}
+	return *userInfo.Sub
 }
 
 func DecodeToken(userToken string) *jwt.MapClaims {
 
-	token, claims, err := client.DecodeAccessToken(ctx, userToken, data.UserRealm, "account")
-
-	lib.TerminalLogger.Info(token.Raw)
+	_, claims, err := client.DecodeAccessToken(ctx, userToken, data.UserRealm, "account")
 
 	if err!=nil{
 		lib.TerminalLogger.Info("Problem with the decoding", err)

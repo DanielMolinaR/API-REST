@@ -18,8 +18,7 @@ func verifyDNI(dni string) bool{
 		if !verifyLastCharIsALetter(dni){
 			return false
 		} else {
-			//Verify if the Letter is correct
-			//with the numbers of the DNI
+			//Verify if the Letter is correct with the numbers of the DNI
 			if !verifyLetterIsCorrect(dni){
 				return false
 			}
@@ -57,17 +56,16 @@ func verifyLetterIsCorrect (dni string) bool {
 }
 
 func verifyPhoneNumber(phone string) bool {
-	//It checks if the phone number has 9 characters
+
 	if len(phone)!=9 {
 		return false
-		//It checks if all the characters are numbers
-	} else if !allAreNumbers(phone){
+	} else if !allCharAreNumbers(phone){
 		return false
 	}
 	return true
 }
 
-func allAreNumbers(phone string) bool{
+func allCharAreNumbers(phone string) bool{
 	//The range of a string return an int32
 	//because It iterates over UTF-8-encoded
 	//code points in the string

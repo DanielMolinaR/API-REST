@@ -15,9 +15,9 @@ func checkIfPassswordIsCorrect(dni , insertedPwd string) (bool, string){
 }
 
 
-func checkIfExists (data string) bool {
+func checkIfExists (condition, data string) bool {
 
-	sqlStatement := "SELECT dni FROM users WHERE dni = $1"
+	sqlStatement := "SELECT dni FROM " + condition +" WHERE dni = $1"
 	//Do the query which return a bool if exists
 	if !SelectQuery(sqlStatement, data){
 		return false
@@ -27,14 +27,14 @@ func checkIfExists (data string) bool {
 
 func DoEmployeeInsert(employee structures.Employee) bool {
 
-	sqlStatement := "INSERT INTO employee (active, admin, dni, email, password, Name, Surname, phone) " +
-		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"
-	var answer bool
-	if !answer{
+	if !CreateUser(employee.User.DNI, employee.User.Password, "EMPLOYEE_ROLE"){
 		return false
+	} else {
+		sqlStatement := "INSERT INTO Employee (active, admin, dni, email, name, surname, phone) " +
+			"VALUES ($1, $2, $3, $4, $5, $6, $7)"
+		response := InsertEmployeeQuery(sqlStatement, employee)
+		return response
 	}
-	response := InsertEmployeeQuery(sqlStatement, employee)
-	return response
 }
 
 func DoPatientInsert(patient structures.Patient) bool {
@@ -53,39 +53,4 @@ func getUserName(data, condition string) string {
 	return response
 }
 
-func getUserId(data, condition string) string{
-	if isPatient(data, condition){
-		TerminalLogger.Info("The user is a patient")
-		DocuLogger.Info("The user is a patient")
-		return "patient"
-	}
-	if bool, response := isTrabajador(data, condition); bool{
-		TerminalLogger.Info("The user is", response)
-		DocuLogger.Info("The user is", response)
-		return response
-	}
-	return "employee suspended"
-}
-
-func isPatient(data, condition string) bool {
-
-	sqlStatement := "SELECT " + condition + " FROM patients WHERE " + condition +" = $1"
-	//Do the query which return a bool if exists
-	TerminalLogger.Trace("Checking if the user is a patient or not")
-	DocuLogger.Trace("Checking if the user is a patient or not")
-	return SelectQuery(sqlStatement, data)
-}
-
-func isTrabajador(data, condition string) (bool, string) {
-
-	sqlStatement := "SELECT admin, active FROM employee WHERE " + condition +" = $1"
-	//Do the query which return a bool if exists
-	if active, admin := SelectEmployeeDataQuery(sqlStatement, data); active{
-		if admin {
-			return true, "admin"
-		}
-		return true, "employee"
-	}
-	return false, ""
-}
 

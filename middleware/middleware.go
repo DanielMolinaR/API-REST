@@ -4,6 +4,8 @@ import (
 	"TFG/API-REST/lib"
 	. "TFG/API-REST/structures"
 	"encoding/json"
+	"fmt"
+	"github.com/dgrijalva/jwt-go/v4"
 )
 
 
@@ -20,25 +22,40 @@ func UsersLogin(reqBody []byte) (bool, map[string]interface{}) {
 	} else {
 		//Return true with a msg of correct login,
 		//the name of the user, the tokens and the role
-		role := DecodeToken(accessToken)
+		roles := DecodeToken(accessToken)
 		lib.TerminalLogger.Info("User logged with the DNI: ******", userToLogIn.DNI[6:])
 		lib.DocuLogger.Info("User logged with the DNI: ******", userToLogIn.DNI[6:])
 		return true, map[string]interface{}{"state": "Sesión iniciada", "Access token": accessToken,
-			"Refresh token": refreshToken, "Roles": (*role)["realm_access"].(map[string]interface{})["roles"]}
+			"Refresh token": refreshToken, "Roles": GetTheRole(roles)}
 	}
 }
 
+func GetTheRole(roles *jwt.MapClaims) int {
+	allTheRoles := (*roles)["realm_access"].(map[string]interface{})["roles"]
+	data := allTheRoles.([]interface{})
+	answer := 0
+	for i := 0; i < len(data); i++{
+		userRole := fmt.Sprintf("%v", data[i])
+		if userRole == "EMPLOYEE_ROLE"{
+			answer = 1
+		}
+		if userRole == "ADMIN_ROLE"{
+			answer = 2
+		}
+	}
+	return answer
+}
 
 func EmployeeSignInVerification(reqBody []byte) (bool, string){
 	var newEmployee Employee
 	//The data from reqBody is filled in the newUser
 	json.Unmarshal(reqBody, &newEmployee)
-	bool, response := signInVerifications(newEmployee.User.DNI, newEmployee.User.Phone, newEmployee.User.Email, newEmployee.User.Password)
+	newEmployee.Admin = false
+	newEmployee.Active = true
+	bool, response := signInVerifications("employee", newEmployee.User.DNI, newEmployee.User.Phone, newEmployee.User.Email, newEmployee.User.Password)
 	if  !bool{
 		return false, response
-	}
-
-	if !DoEmployeeInsert(newEmployee){
+	}else if !DoEmployeeInsert(newEmployee){
 		return false, ""
 	}
 	return true, "Usuario creado"
@@ -48,7 +65,7 @@ func PatientSignInVerification(reqBody []byte) (bool, string){
 	var newPatient Patient
 	//The data from reqBody is filled in the newUser
 	json.Unmarshal(reqBody, &newPatient)
-	bool, response := signInVerifications(newPatient.User.DNI, newPatient.User.Phone, newPatient.User.Email, newPatient.User.Password)
+	bool, response := signInVerifications("patients", newPatient.User.DNI, newPatient.User.Phone, newPatient.User.Email, newPatient.User.Password)
 	if  !bool{
 		return false, response
 	}
@@ -58,12 +75,12 @@ func PatientSignInVerification(reqBody []byte) (bool, string){
 	return true, "Usuario creado"
 }
 
-func signInVerifications(dni, phone, email, password string) (bool, string){
+func signInVerifications(condition, dni, phone, email, password string) (bool, string){
 	//verifyDNI verify if the DNI is correct
 	// and if it exists in the DB
 	if !verifyDNI(dni){
 		return false, "DNI incorrecto"
-	} else if checkIfExists(dni){
+	} else if checkIfExists(condition, dni){
 		return false, "Este DNI ya existe"
 	}
 	//Phone number verification
@@ -75,14 +92,9 @@ func signInVerifications(dni, phone, email, password string) (bool, string){
 		return false, "Email no váido"
 	}
 	//Verify if the password is strong
-	if !verifyPasswordIsSafe(string(password)){
+	if !verifyPasswordIsSafe(password){
 		return false, "La contraseña es muy débil"
 	}
 	return true, ""
-}
-
-func VerifyToken (token string) (bool){
-	//Calls the verify method
-	return Verify(token)
 }
 
