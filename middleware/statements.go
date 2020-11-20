@@ -3,54 +3,59 @@ package middleware
 import (
 	. "TFG/API-REST/lib"
 	"TFG/API-REST/structures"
+	"time"
 )
 
-func checkIfPassswordIsCorrect(dni , insertedPwd string) (bool, string){
+func checkIfExists (condition, dataToSelect, data string) bool {
 
-	sqlStatement := "SELECT password FROM users WHERE dni=$1"
-	//DO the select and return the password
-	_ = SelectQueryPwd(sqlStatement, dni)
-	//Check if the password is correct
-	return false, "Contraseña incorrecta"
-}
-
-
-func checkIfExists (condition, data string) bool {
-
-	sqlStatement := "SELECT dni FROM " + condition +" WHERE dni = $1"
+	sqlStatement := "SELECT " + dataToSelect + " FROM " + condition +" WHERE "+ dataToSelect +" = $1"
 	//Do the query which return a bool if exists
 	if !SelectQuery(sqlStatement, data){
+		TerminalLogger.Info("The " + dataToSelect +" doesnt exists in the DDBB")
+		DocuLogger.Info("The " + dataToSelect +" doesnt exists in the DDBB")
 		return false
 	}
 	return true
 }
 
-func DoEmployeeInsert(employee structures.Employee) bool {
+func doEmployeeInsert(employee structures.Employee) bool {
 
-	if !CreateUser(employee.User.DNI, employee.User.Password, "EMPLOYEE_ROLE"){
+	sqlStatement := "INSERT INTO Employee (active, admin, dni, email, name, surname, phone) " +
+		"VALUES ($1, $2, $3, $4, $5, $6, $7)"
+	if !InsertEmployeeQuery(sqlStatement, employee){
 		return false
 	} else {
-		sqlStatement := "INSERT INTO Employee (active, admin, dni, email, name, surname, phone) " +
-			"VALUES ($1, $2, $3, $4, $5, $6, $7)"
-		response := InsertEmployeeQuery(sqlStatement, employee)
+		return createKeycloakUser(employee.User.DNI, employee.User.Password, "EMPLOYEE_ROLE")
+	}
+}
+
+func doPatientInsert(patient structures.Patient) bool {
+
+	if !createKeycloakUser(patient.User.DNI, patient.User.Password, "PATIENT_ROLE"){
+		return false
+	} else {
+		sqlStatement := "INSERT INTO patients (birthdate, dni, email, name, surname, phone) " +
+			"VALUES ($1, $2, $3, $4, $5, $6)"
+		response := InsertPatientQuery(sqlStatement, patient)
 		return response
 	}
 }
 
-func DoPatientInsert(patient structures.Patient) bool {
-
-	sqlStatement := "INSERT INTO patients (age, dni, email, password, Name, Surname, phone) " +
-		"VALUES ($1, $2, $3, $4, $5, $6, $7)"
-	response := InsertPatientQuery(sqlStatement, patient)
-	return response
+func getUuid(uuid string) (string, string){
+	sqlStatement := "SELECT * FROM UniqueUrl WHERE (uuid = $1)"
+	return DoSelectUuid(sqlStatement, uuid)
 }
 
-func getUserName(data, condition string) string {
-
-	sqlStatement := "SELECT * FROM users WHERE " + condition +" = $1"
-	userData := SelectUserDataQuery(sqlStatement, data)
-	response := userData["name"].(string)
-	return response
+func insertUuidAndExpTime(uuid string) bool{
+	sqlStatement := "INSERT INTO UniqueUrl VALUES ($1, $2);"
+	expTime := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day() + 3, time.Now().Hour(), time.Now().Minute(), time.Now().Second(),0,time.Local)
+	return DoUuidInsert(sqlStatement, uuid, expTime.String()[:20])
 }
+
+func deleteUuidRow(uuid string) {
+	sqlStatement := "DELETE FROM UniqueUrl WHERE (uuid = $1)"
+	DoDeleteUuidRow(sqlStatement, uuid)
+}
+
 
 

@@ -11,7 +11,7 @@ type Users struct{
 
 type Patient struct{
 	User Users	`json:"data"`
-	Age  int 	`json:"Age"`
+	Birthdate  int 	`json:"Birthdate"`
 }
 
 type Employee struct{

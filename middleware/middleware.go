@@ -5,32 +5,34 @@ import (
 	. "TFG/API-REST/structures"
 	"encoding/json"
 	"fmt"
-	"github.com/dgrijalva/jwt-go/v4"
+	"github.com/google/uuid"
+	"strings"
 )
 
-
 func UsersLogin(reqBody []byte) (bool, map[string]interface{}) {
-
 	var userToLogIn Users
 
 	//The data from reqBody is filled in the newUser
-	_ = json.Unmarshal(reqBody, &userToLogIn)
+	err := json.Unmarshal(reqBody, &userToLogIn)
 
-	//Verify the credentials login
- 	if ok, accessToken, refreshToken := UserCredentialsLogin(userToLogIn.DNI, userToLogIn.Password); !ok{
+	if err != nil{
+		lib.TerminalLogger.Error("Impossible to retrieve the data from the JSON")
+		lib.DocuLogger.Error("Impossible to retrieve the data from the JSON")
+		return false, map[string]interface{}{"state": "Problemas con la lectura de los datos"}
+	}else if ok, accessToken, refreshToken := UserCredentialsLogin(userToLogIn.DNI, userToLogIn.Password); !ok{ //Try to login in keycloak
 		return false, map[string]interface{}{"state": "DNI o contraseña incorrecto"}
 	} else {
 		//Return true with a msg of correct login,
 		//the name of the user, the tokens and the role
-		roles := DecodeToken(accessToken)
-		lib.TerminalLogger.Info("User logged with the DNI: ******", userToLogIn.DNI[6:])
-		lib.DocuLogger.Info("User logged with the DNI: ******", userToLogIn.DNI[6:])
+		lib.TerminalLogger.Trace("User logged in with the DNI: ******", userToLogIn.DNI[6:])
+		lib.DocuLogger.Trace("User logged in with the DNI: ******", userToLogIn.DNI[6:])
 		return true, map[string]interface{}{"state": "Sesión iniciada", "Access token": accessToken,
-			"Refresh token": refreshToken, "Roles": GetTheRole(roles)}
+			"Refresh token": refreshToken, "Role": GetTheRole(accessToken)}
 	}
 }
 
-func GetTheRole(roles *jwt.MapClaims) int {
+func GetTheRole(token string) int {
+	roles := DecodeToken(token)
 	allTheRoles := (*roles)["realm_access"].(map[string]interface{})["roles"]
 	data := allTheRoles.([]interface{})
 	answer := 0
@@ -46,22 +48,71 @@ func GetTheRole(roles *jwt.MapClaims) int {
 	return answer
 }
 
-func EmployeeSignInVerification(reqBody []byte) (bool, string){
-	var newEmployee Employee
+func GenerateAndSendURL(reqBody []byte) (bool, map[string]interface{}){
+	var userData Users
+
 	//The data from reqBody is filled in the newUser
-	json.Unmarshal(reqBody, &newEmployee)
-	newEmployee.Admin = false
-	newEmployee.Active = true
-	bool, response := signInVerifications("employee", newEmployee.User.DNI, newEmployee.User.Phone, newEmployee.User.Email, newEmployee.User.Password)
-	if  !bool{
-		return false, response
-	}else if !DoEmployeeInsert(newEmployee){
-		return false, ""
+	err := json.Unmarshal(reqBody, &userData)
+
+	if err != nil{
+		lib.TerminalLogger.Error("Impossible to retrieve the data from the JSON")
+		lib.DocuLogger.Error("Impossible to retrieve the data from the JSON")
+		return false, map[string]interface{}{"state": "Problemas con la lectura de los datos"}
+	} else if !verifyEmail(userData.Email){ //verify if the format of the email is correct
+		lib.TerminalLogger.Error("Email format incorect")
+		lib.DocuLogger.Error("Email format incorect")
+		return false, map[string]interface{}{"state": "Formato del correo electrónico incorrecto"}
+	} else {
+		uuid := generarteUUID()
+		if !insertUuidAndExpTime(uuid){
+			return false, map[string]interface{}{"state": "Imposible de generar el url unico"}
+		} else {
+			url := "http://localhost:8081/employee-sign-up/" + uuid
+			if !SendEmailForSignUp(userData.Name, userData.Email, url) {
+				deleteUuidRow(uuid)
+				lib.TerminalLogger.Error("Impossible to send the email")
+				lib.DocuLogger.Error("Impossible to send the email")
+				return false, map[string]interface{}{"state": "Imposible enviar el correo"}
+			} else {
+				lib.TerminalLogger.Trace("Email for Sign Up sent to: " + userData.Email)
+				lib.DocuLogger.Trace("Email for Sign Up sent to: " + userData.Email)
+				return true, map[string]interface{}{"state": "Correo enviado"}
+			}
+		}
 	}
-	return true, "Usuario creado"
 }
 
-func PatientSignInVerification(reqBody []byte) (bool, string){
+func generarteUUID() string {
+	uuidWithHyphen := uuid.New()
+	uuid := strings.Replace(uuidWithHyphen.String(), "-", "", -1)
+	return uuid
+}
+
+func EmployeeSignInVerification(reqBody []byte) (bool, map[string]interface{}){
+	var newEmployee Employee
+	//The data from reqBody is filled in the newUser
+	err := json.Unmarshal(reqBody, &newEmployee)
+
+	newEmployee.Admin = false
+	newEmployee.Active = true
+
+	if err != nil{
+		lib.TerminalLogger.Error("Impossible to retrieve the data from the JSON")
+		lib.DocuLogger.Error("Impossible to retrieve the data from the JSON")
+		return false, map[string]interface{}{"state": "Problemas con la lectura de los datos"}
+	} else {
+		bool, response := signInVerifications("employee", newEmployee.User.DNI, newEmployee.User.Phone, newEmployee.User.Email, newEmployee.User.Password)
+		if !bool {
+			return false, response
+			//insertar el usuario en keycloak
+		} else if !doEmployeeInsert(newEmployee) {
+			return false, map[string]interface{}{"state": "Imposible añadir el usuario en la BBDD"}
+		}
+		return true, map[string]interface{}{"state": "Usuario Creado"}
+	}
+}
+
+func PatientSignInVerification(reqBody []byte) (bool, map[string]interface{}){
 	var newPatient Patient
 	//The data from reqBody is filled in the newUser
 	json.Unmarshal(reqBody, &newPatient)
@@ -69,32 +120,9 @@ func PatientSignInVerification(reqBody []byte) (bool, string){
 	if  !bool{
 		return false, response
 	}
-	if !DoPatientInsert(newPatient){
-		return false, ""
+	if !doPatientInsert(newPatient){
+		return false, map[string]interface{}{"state": "Imposible de añadir en la BBDD"}
 	}
-	return true, "Usuario creado"
-}
-
-func signInVerifications(condition, dni, phone, email, password string) (bool, string){
-	//verifyDNI verify if the DNI is correct
-	// and if it exists in the DB
-	if !verifyDNI(dni){
-		return false, "DNI incorrecto"
-	} else if checkIfExists(condition, dni){
-		return false, "Este DNI ya existe"
-	}
-	//Phone number verification
-	if !verifyPhoneNumber(phone){
-		return false, "El numero de telefono no existe"
-	}
-	//Email verification
-	if !verifyEmail(email){
-		return false, "Email no váido"
-	}
-	//Verify if the password is strong
-	if !verifyPasswordIsSafe(password){
-		return false, "La contraseña es muy débil"
-	}
-	return true, ""
+	return true, map[string]interface{}{"state": "Usuario Creado"}
 }
 

@@ -58,15 +58,15 @@ func UserCredentialsLogin(userDni, password string) (bool, string, string) {
 	userToken, err := client.Login(ctx, data.ClientId, data.Secret, data.UserRealm, userDni, password)
 
 	if err != nil{
-		lib.TerminalLogger.Info("Problem with the login in keycloak", err)
-		lib.DocuLogger.Info("Problem with the login in keycloak", err)
+		lib.TerminalLogger.Error("Problem with the login in keycloak", err)
+		lib.DocuLogger.Error("Problem with the login in keycloak", err)
 		return false, "", ""
 	}
 
 	return true, userToken.AccessToken, userToken.RefreshToken
 }
 
-func CreateUser(userDni, password, role string) bool {
+func createKeycloakUser(userDni, password, role string) bool {
 
 	user := gocloak.User{
 		Enabled:   gocloak.BoolP(true),
@@ -87,7 +87,9 @@ func CreateUser(userDni, password, role string) bool {
 		return false
 	}
 	if !updateUserRole(userDni, password, role, userId){
-		deleteUser(userDni, password, userId)
+		lib.TerminalLogger.Info("Impossible to update the role", err)
+		lib.DocuLogger.Info("Impossible to update the role", err)
+		deleteKeycloakUser(userDni, password, userId)
 		return false
 	}
 	lib.TerminalLogger.Info("User created, answer: ")
@@ -112,7 +114,7 @@ func updateUserRole(userDni, password, role, userId string) bool{
 	return true
 }
 
-func deleteUser(userDni, password, userId string) bool{
+func deleteKeycloakUser(userDni, password, userId string) bool{
 
 	err := client.DeleteUser(ctx, getAdminToken(), data.UserRealm, userId)
 	if err != nil{
@@ -146,7 +148,7 @@ func DecodeToken(userToken string) *jwt.MapClaims {
 
 }
 
-func Verify(token string) bool{
+func VerifyToken(token string) bool{
 	//Retrospect the token
 	rptResult, err := client.RetrospectToken(ctx, token, data.ClientId, data.Secret, data.UserRealm)
 	if err != nil {

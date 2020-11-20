@@ -1,13 +1,42 @@
 package middleware
 
 import (
+	"TFG/API-REST/lib"
 	"github.com/badoux/checkmail"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 )
 
 var letters = []string{"T", "R", "W", "A", "G", "M", "Y", "F", "P", "D", "X", "B", "N",	"J", "Z", "S", "Q",	"V", "H", "L", "C", "K", "E"}
+
+func signInVerifications(condition, dni, phone, email, password string) (bool, map[string]interface{}){
+	//verifyDNI verify if the DNI is correct
+	// and if it exists in the DB
+	if !verifyDNI(dni){
+		return false, map[string]interface{}{"state": "DNI incorrecto"}
+	} else if checkIfExists(condition,"dni", dni){
+		return false, map[string]interface{}{"state": "Ya existe este DNI"}
+	}
+	//Verify if the password is strong
+	if !verifyPasswordIsSafe(password){
+		return false, map[string]interface{}{"state": "Contraseña débil"}
+	}
+	//Email verification
+	if !verifyEmail(email){
+		return false, map[string]interface{}{"state": "Correo no válido"}
+	} else if checkIfExists(condition,"email", email){
+		return false, map[string]interface{}{"state": "Ya existe este correo"}
+	}
+	//Phone number verification
+	if !verifyPhoneNumber(phone){
+		return false, map[string]interface{}{"state": "El número de teléfono no existe"}
+	} else if checkIfExists(condition,"phone", phone){
+		return false, map[string]interface{}{"state": "Ya existe este número de teléfono"}
+	}
+	return true, map[string]interface{}{"state": ""}
+}
 
 func verifyDNI(dni string) bool{
 	//The DNI must has 9 characters
@@ -144,4 +173,26 @@ func verifyPasswordIsSafe(s string) bool {
 	}
 	//If every value is true the password is safe
 	return hasMinLen && hasUpper && hasLower && hasNumber && hasSpecial && hasntSpace
+}
+
+func VerifyUuid(uuid string) bool{
+	uuidResponse, expTime := getUuid(uuid)
+	if (len(uuidResponse) == 0 || len(expTime) == 0){
+		lib.TerminalLogger.Error("Empty fields fromm the table uniqueUrl: ", uuidResponse, " ", expTime)
+		lib.DocuLogger.Error("Empty fields fromm the table uniqueUrl", uuidResponse, " ", expTime)
+		return false
+	} else {
+		expTime = strings.Replace(expTime, " ", "T",1)
+		expTime += "Z"
+		expirationAt, _ := time.Parse(time.RFC3339, expTime)
+		if time.Now().After(expirationAt){
+			lib.TerminalLogger.Error("The uuid has expired. Expiration date: ", expTime)
+			lib.DocuLogger.Error("The uuid has expired. Expriration Date: ", expTime)
+			return false
+		} else {
+			lib.TerminalLogger.Error("The slug is correct")
+			lib.DocuLogger.Error("The slug is correct")
+			return true
+		}
+	}
 }

@@ -41,32 +41,14 @@ func init() {
 	if err != nil {
 		fmt.Println(err)
 	}
-
-}
-
-func SelectQueryPwd(sqlStatement, data string) (string) {
-	var password string
-	//Do the query and if It's correct
-	//It means that the password is saved
-	rows, err := db.Query(context.Background(), sqlStatement, data)
-	rows.Scan(&password)
-	if err != nil {
-		TerminalLogger.Error("Error with the query: ", err)
-		DocuLogger.Error("Error with the query: ", err)
-		return ""
-	}
-
-	return password
 }
 
 func SelectQuery(sqlStatement, data string) (bool) {
-	var dni string
+	var response string
 
-	rows := db.QueryRow(context.Background(), sqlStatement, data).Scan(&dni)
+	rows := db.QueryRow(context.Background(), sqlStatement, data).Scan(&response)
 	if rows != nil {
-		if dni == ""{
-			TerminalLogger.Info("The DNI doesnt exists in the DDBB")
-			DocuLogger.Info("The DNI doesnt exists in the DDBB")
+		if response == ""{
 			return false
 		} else {
 			TerminalLogger.Warn("Error with the query: ", rows.Error())
@@ -79,43 +61,19 @@ func SelectQuery(sqlStatement, data string) (bool) {
 	return true
 }
 
-func SelectUserDataQuery(sqlStatement, data string) map[string]interface{} {
-	var (
-		name string
-		email string
-		phone string
-		surname string
-		dni string
-		password string
-	)
+func SelectEmployeeDataQuery(sqlStatement, data string) structures.Employee {
+	var employee structures.Employee
 	//Do the query and if It's correct
 	//It means that the password is saved
-	rows, err := db.Query(context.Background(), sqlStatement, data)
-	rows.Scan(&dni, &email, &password, &name, &surname, &phone)
+	err := db.QueryRow(context.Background(), sqlStatement, data).Scan(&employee.User.DNI, &employee.User.Name, &employee.User.Email,
+		&employee.User.Phone, &employee.User.Surname, &employee.Active, employee.Admin)
 	if err != nil {
 		TerminalLogger.Error("Error with the query:", err)
 		DocuLogger.Error("Error with the query:", err)
-		return map[string]interface{}{"error": err}
+		return employee
 	}
 
-	return map[string]interface{}{"name": name, "email": email, "phone": phone, "surname": surname}
-}
-
-func SelectEmployeeDataQuery(sqlStatement, data string) (bool, bool) {
-	var (
-		admin bool
-		active bool
-	)
-	//Do the query and if It's correct
-	//It means that the password is saved
-	rows, err := db.Query(context.Background(), sqlStatement, data)
-	rows.Scan(&admin, &active)
-	if err != nil {
-		TerminalLogger.Error("Error with the query:", err)
-		DocuLogger.Error("Error with the query:", err)
-		return false, false
-	}
-	return active, admin
+	return employee
 }
 
 /*func selectAppointmentsQuery(db *pgxpool.Pool, sqlStatement, data string) (bool, pgx.Rows) {
@@ -152,10 +110,43 @@ func InsertEmployeeQuery(sqlStatement string, employee structures.Employee) (boo
 }
 
 func InsertPatientQuery(sqlStatement string, patient structures.Patient) (bool){
-	_, err := db.Exec(context.Background(), sqlStatement, patient.Age, patient.User.DNI, patient.User.Email,
+	_, err := db.Exec(context.Background(), sqlStatement, patient.Birthdate, patient.User.DNI, patient.User.Email,
 		patient.User.Name, patient.User.Surname, patient.User.Phone)
 	if err != nil {
 		fmt.Println(err)
+		return false
+	}
+	return true
+}
+
+func DoSelectUuid(sqlStatement, uuid string) (string, string){
+	var uuidResponse, expTime string
+
+	rows := db.QueryRow(context.Background(), sqlStatement, uuid).Scan(&uuidResponse, &expTime)
+	if rows == nil {
+		TerminalLogger.Error("Error with the query: ", rows.Error())
+		DocuLogger.Error("Error with the query: ", rows.Error())
+		return "",""
+	} else {
+		return uuidResponse, expTime
+	}
+}
+
+func DoUuidInsert(sqlStatement string, uuid, expTime string) bool{
+	_, err := db.Exec(context.Background(), sqlStatement, uuid, expTime)
+	if err != nil {
+		TerminalLogger.Error("Something went wrong inserting the UUID", err)
+		DocuLogger.Error("Something went wrong inserting the UUID", err)
+		return false
+	}
+	return true
+}
+
+func DoDeleteUuidRow(sqlStatement, uuid string) bool{
+	_, err := db.Exec(context.Background(), sqlStatement, uuid)
+	if err != nil {
+		TerminalLogger.Error("Something went wrong deleting the UUID", err)
+		DocuLogger.Error("Something went wrong deleting the UUID", err)
 		return false
 	}
 	return true
