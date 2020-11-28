@@ -119,21 +119,36 @@ func InsertPatientQuery(sqlStatement string, patient structures.Patient) (bool){
 	return true
 }
 
-func DoSelectUuid(sqlStatement, uuid string) (string, string){
-	var uuidResponse, expTime string
+func DoSelectExpTimeFromUniqueUrl(sqlStatement, uuid string) (int64){
 
-	rows := db.QueryRow(context.Background(), sqlStatement, uuid).Scan(&uuidResponse, &expTime)
+	var expTime int64
+
+	rows := db.QueryRow(context.Background(), sqlStatement, uuid).Scan(&expTime)
 	if rows == nil {
+		return expTime
+	} else {
 		TerminalLogger.Error("Error with the query: ", rows.Error())
 		DocuLogger.Error("Error with the query: ", rows.Error())
-		return "",""
-	} else {
-		return uuidResponse, expTime
+		return 0
 	}
 }
 
-func DoUuidInsert(sqlStatement string, uuid, expTime string) bool{
-	_, err := db.Exec(context.Background(), sqlStatement, uuid, expTime)
+func DoSelectOneString(sqlStatement, uuid string) string{
+
+	var value string
+
+	rows := db.QueryRow(context.Background(), sqlStatement, uuid).Scan(&value)
+	if rows == nil {
+		return value
+	} else {
+		TerminalLogger.Error("Error with the query: ", rows.Error())
+		DocuLogger.Error("Error with the query: ", rows.Error())
+		return ""
+	}
+}
+
+func DoUniqueUrlTableInsert(sqlStatement, uuid, expTime, userId, email string) bool{
+	_, err := db.Exec(context.Background(), sqlStatement, uuid, expTime, userId, email)
 	if err != nil {
 		TerminalLogger.Error("Something went wrong inserting the UUID", err)
 		DocuLogger.Error("Something went wrong inserting the UUID", err)
@@ -151,6 +166,17 @@ func DoDeleteUuidRow(sqlStatement, uuid string) bool{
 	}
 	return true
 }
+
+func DoUpdateExpTime(sqlStatement, newExpTime, uuid string) bool{
+	_, err := db.Exec(context.Background(), sqlStatement, newExpTime, uuid)
+	if err != nil {
+		TerminalLogger.Error("Something went wrong updating the expiration_date", err)
+		DocuLogger.Error("Something went wrong updating the expiration_date", err)
+		return false
+	}
+	return true
+}
+
 
 func updateQuery(db *sql.DB){
 	sqlStatement := "UPDATE employee set name=($1), surname=($2) where dni=($3)"

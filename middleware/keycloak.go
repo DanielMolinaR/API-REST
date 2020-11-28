@@ -66,10 +66,10 @@ func UserCredentialsLogin(userDni, password string) (bool, string, string) {
 	return true, userToken.AccessToken, userToken.RefreshToken
 }
 
-func createKeycloakUser(userDni, password, role string) bool {
+func createKeycloakUser(userDni, password, role string) (bool, string) {
 
 	user := gocloak.User{
-		Enabled:   gocloak.BoolP(true),
+		Enabled:   gocloak.BoolP(false),
 		Username:  gocloak.StringP(userDni),
 		Credentials: &[]gocloak.CredentialRepresentation{
 			{
@@ -84,17 +84,17 @@ func createKeycloakUser(userDni, password, role string) bool {
 	if err != nil {
 		lib.TerminalLogger.Info("Something went wrong", err)
 		lib.DocuLogger.Info("Something went wrong", err)
-		return false
+		return false, ""
 	}
 	if !updateUserRole(userDni, password, role, userId){
 		lib.TerminalLogger.Info("Impossible to update the role", err)
 		lib.DocuLogger.Info("Impossible to update the role", err)
 		deleteKeycloakUser(userDni, password, userId)
-		return false
+		return false, ""
 	}
 	lib.TerminalLogger.Info("User created, answer: ")
 	lib.DocuLogger.Info("User created, answer: ")
-	return true
+	return true, userId
 }
 
 func updateUserRole(userDni, password, role, userId string) bool{
@@ -112,6 +112,21 @@ func updateUserRole(userDni, password, role, userId string) bool{
 		return false
 	}
 	return true
+}
+
+func updateUserEnabled(userId string) bool {
+	user := gocloak.User{
+		ID: gocloak.StringP(userId),
+		Enabled:   gocloak.BoolP(true),
+	}
+	err := client.UpdateUser(ctx, getAdminToken(), data.UserRealm, user)
+	if err != nil{
+		lib.TerminalLogger.Info("Something went wrong updating the user enabled: ", err)
+		lib.DocuLogger.Info("Something went wrong updating the user enabled: ", err)
+		return false
+	} else {
+		return true
+	}
 }
 
 func deleteKeycloakUser(userDni, password, userId string) bool{
@@ -152,14 +167,15 @@ func VerifyToken(token string) bool{
 	//Retrospect the token
 	rptResult, err := client.RetrospectToken(ctx, token, data.ClientId, data.Secret, data.UserRealm)
 	if err != nil {
-		lib.TerminalLogger.Info("Problem retrospecting the token", err)
-		lib.DocuLogger.Info("Problem retrospecting the token", err)
+		lib.TerminalLogger.Error("Problem retrospecting the token", err)
+		lib.DocuLogger.Error("Problem retrospecting the token", err)
 	}
 	//Check if the token is active
-	if *rptResult.Active {
-		return true
+	if rptResult != nil {
+		if *rptResult.Active {
+			return true
+		}
 	}
-
 	return false
 
 }

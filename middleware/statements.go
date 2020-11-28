@@ -18,44 +18,81 @@ func checkIfExists (condition, dataToSelect, data string) bool {
 	return true
 }
 
-func doEmployeeInsert(employee structures.Employee) bool {
+func doEmployeeInsert(employee structures.Employee) (bool, string) {
 
 	sqlStatement := "INSERT INTO Employee (active, admin, dni, email, name, surname, phone) " +
 		"VALUES ($1, $2, $3, $4, $5, $6, $7)"
 	if !InsertEmployeeQuery(sqlStatement, employee){
-		return false
+		return false, ""
 	} else {
-		return createKeycloakUser(employee.User.DNI, employee.User.Password, "EMPLOYEE_ROLE")
+
+		//if the employee has been inserted in the DB correctly now is inserted into keycloak
+		if ok, userid := createKeycloakUser(employee.User.DNI, employee.User.Password, "EMPLOYEE_ROLE"); !ok{
+
+			//As the user couldnt be saved in keycloak It must be deleted in the DB
+			// DeleteUser(dni)
+			return ok, userid
+		} else {
+			return ok, userid
+		}
 	}
 }
 
-func doPatientInsert(patient structures.Patient) bool {
+func doPatientInsert(patient structures.Patient) (bool, string) {
 
-	if !createKeycloakUser(patient.User.DNI, patient.User.Password, "PATIENT_ROLE"){
-		return false
+	sqlStatement := "INSERT INTO Patients (birthdate, dni, email, name, surname, phone) " +
+		"VALUES ($1, $2, $3, $4, $5, $6)"
+	if !InsertPatientQuery(sqlStatement, patient){
+		return false, ""
 	} else {
-		sqlStatement := "INSERT INTO patients (birthdate, dni, email, name, surname, phone) " +
-			"VALUES ($1, $2, $3, $4, $5, $6)"
-		response := InsertPatientQuery(sqlStatement, patient)
-		return response
+
+		//if the employee has been inserted in the DB correctly now is inserted into keycloak
+		if ok, userid := createKeycloakUser(patient.User.DNI, patient.User.Password, "PATIENT_ROLE"); !ok{
+
+			//As the user couldnt be saved in keycloak It must be deleted in the DB
+			// DeleteUser(dni)
+			return ok, userid
+		} else {
+			return ok, userid
+		}
 	}
 }
 
-func getUuid(uuid string) (string, string){
-	sqlStatement := "SELECT * FROM UniqueUrl WHERE (uuid = $1)"
-	return DoSelectUuid(sqlStatement, uuid)
+func getExpTimeFromUuid(uuid string) (int64){
+	sqlStatement := "SELECT EXTRACT('epoch' from expiration_date) FROM uniqueUrl WHERE uuid = $1"
+	return DoSelectExpTimeFromUniqueUrl(sqlStatement, uuid)
 }
 
-func insertUuidAndExpTime(uuid string) bool{
-	sqlStatement := "INSERT INTO UniqueUrl VALUES ($1, $2);"
-	expTime := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day() + 3, time.Now().Hour(), time.Now().Minute(), time.Now().Second(),0,time.Local)
-	return DoUuidInsert(sqlStatement, uuid, expTime.String()[:20])
+func insertUuidExpTimeAndUserId(uuid, userId, email string) bool{
+	sqlStatement := "INSERT INTO UniqueUrl VALUES ($1, $2, $3, $4);"
+	expTime := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day() + 3, time.Now().Hour(), time.Now().Minute(), time.Now().Second(),0, time.UTC)
+	return DoUniqueUrlTableInsert(sqlStatement, uuid, expTime.String()[:20], userId, email)
 }
 
-func deleteUuidRow(uuid string) {
+func DeleteUuidRow(uuid string) {
 	sqlStatement := "DELETE FROM UniqueUrl WHERE (uuid = $1)"
 	DoDeleteUuidRow(sqlStatement, uuid)
 }
 
+func UpdateExpTimeFromUuid(uuid string) bool {
+	sqlStatement := "UPDATE UniqueUrl SET expiration_date = $1 WHERE (uuid = $2)"
+	expTime := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day() + 3, time.Now().Hour(), time.Now().Minute(), time.Now().Second(),0, time.UTC)
+	 return DoUpdateExpTime(sqlStatement, expTime.String()[:20], uuid)
+}
+
+func getUserIdFromUuid(uuid string) string {
+	sqlStatement := "SELECT user_id FROM uniqueUrl WHERE uuid = $1"
+	return DoSelectOneString(sqlStatement, uuid)
+}
+
+func getEmailFromUuid(uuid string) string {
+	sqlStatement := "SELECT email FROM uniqueUrl WHERE uuid = $1"
+	return DoSelectOneString(sqlStatement, uuid)
+}
+
+func getNameFromUsersWithEmail(email string) string {
+	sqlStatement := "SELECT name FROM users WHERE email = $1"
+	return DoSelectOneString(sqlStatement, email)
+}
 
 

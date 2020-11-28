@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"TFG/API-REST/lib"
+	. "TFG/API-REST/structures"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -9,10 +10,9 @@ import (
 	"io/ioutil"
 	"net/smtp"
 	"os"
-	. "TFG/API-REST/structures"
 )
 
-var emailPwd Users
+var secret Users
 
 func init() {
 	dataconfig, err := os.Open("./API-REST/middleware/ePassword.json")
@@ -20,8 +20,16 @@ func init() {
 		fmt.Println(err)
 	}
 	jsonBody, _ := ioutil.ReadAll(dataconfig)
-	json.Unmarshal(jsonBody, &emailPwd)
+	json.Unmarshal(jsonBody, &secret)
 
+}
+
+//Request struct
+type Request struct {
+	from    string
+	to      []string
+	subject string
+	body    string
 }
 
 // smtpServer data to smtp server
@@ -29,15 +37,39 @@ type smtpServer struct {
 	host string
 	port string
 }
+
+func NewRequest(to []string, subject, body string) *Request {
+	return &Request{
+		to:      to,
+		subject: subject,
+		body:    body,
+	}
+}
+
 // Address URI to smtp server
 func (s *smtpServer) Address() string {
 	return s.host + ":" + s.port
 }
 
-func SendEmailForSignUp(name, email, url string) bool {
+func CreateEmail(uuid, name, email, path string) (bool, map[string]interface{}) {
+
+	url := "http://localhost:8081/" + path + "/" + uuid
+	if !sendEmail(name, email, url) {
+		lib.TerminalLogger.Error("Impossible to send the email")
+		lib.DocuLogger.Error("Impossible to send the email")
+		return false, map[string]interface{}{"state": "Imposible enviar el correo"}
+	} else {
+		lib.TerminalLogger.Trace("Email for Sign Up sent to: " + email)
+		lib.DocuLogger.Trace("Email for Sign Up sent to: " + email)
+		return true, map[string]interface{}{"state": "Correo enviado"}
+	}
+	return false, nil
+}
+
+func sendEmail(name, email, url string) bool {
 	// Sender data.
-	from := emailPwd.Email
-	password := emailPwd.Password
+	from := secret.Email
+	password := secret.Password
 	// smtp server configuration.
 	smtpServer := smtpServer{host: "smtp.gmail.com", port: "587"}
 	// Authentication.
@@ -82,22 +114,6 @@ func SendEmailForSignUp(name, email, url string) bool {
 		return false
 	}
 	return true
-}
-
-//Request struct
-type Request struct {
-	from    string
-	to      []string
-	subject string
-	body    string
-}
-
-func NewRequest(to []string, subject, body string) *Request {
-	return &Request{
-		to:      to,
-		subject: subject,
-		body:    body,
-	}
 }
 
 func (r *Request) ParseTemplate(templateFileName string, data interface{}) error {
