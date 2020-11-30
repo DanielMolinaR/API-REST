@@ -63,7 +63,6 @@ func CreateEmail(uuid, name, email, path string) (bool, map[string]interface{}) 
 		lib.DocuLogger.Trace("Email for Sign Up sent to: " + email)
 		return true, map[string]interface{}{"state": "Correo enviado"}
 	}
-	return false, nil
 }
 
 func sendEmail(name, email, url string) bool {

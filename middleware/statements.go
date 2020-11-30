@@ -29,8 +29,8 @@ func doEmployeeInsert(employee structures.Employee) (bool, string) {
 		//if the employee has been inserted in the DB correctly now is inserted into keycloak
 		if ok, userid := createKeycloakUser(employee.User.DNI, employee.User.Password, "EMPLOYEE_ROLE"); !ok{
 
-			//As the user couldnt be saved in keycloak It must be deleted in the DB
-			// DeleteUser(dni)
+			//As the user could not be saved in keycloak It must be deleted in the DB
+			DeleteUserStatement(employee.User.DNI)
 			return ok, userid
 		} else {
 			return ok, userid
@@ -46,16 +46,21 @@ func doPatientInsert(patient structures.Patient) (bool, string) {
 		return false, ""
 	} else {
 
-		//if the employee has been inserted in the DB correctly now is inserted into keycloak
+		//if the patient has been inserted in the DB correctly now is inserted into keycloak
 		if ok, userid := createKeycloakUser(patient.User.DNI, patient.User.Password, "PATIENT_ROLE"); !ok{
 
 			//As the user couldnt be saved in keycloak It must be deleted in the DB
-			// DeleteUser(dni)
+			DeleteUserStatement(patient.User.DNI)
 			return ok, userid
 		} else {
 			return ok, userid
 		}
 	}
+}
+
+func DeleteUserStatement(dni string) {
+	sqlStatemente := "DELETE FROM users WHERE dni = $1"
+	DoDeleteUserQuery(sqlStatemente, dni)
 }
 
 func getExpTimeFromUuid(uuid string) (int64){

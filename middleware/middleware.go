@@ -70,7 +70,7 @@ func VerifyAndSendEmail(reqBody []byte) (bool, map[string]interface{}){
 
 		//if it's correct we generate the slug, then we saved it with an expiration date and finally we send the email
 		uuid := generateUUID()
-		if !insertUuidExpTimeAndUserId(uuid, "", ""){
+		if !insertUuidExpTimeAndUserId(uuid, "", userData.Email){
 			return false, map[string]interface{}{"state": "Imposible de generar el url unico"}
 		} else {
 			if ok, response := CreateEmail(uuid, userData.Name, userData.Email,"employee-sign-up"); !ok{
@@ -120,9 +120,9 @@ func EmployeeSignUpVerification(reqBody []byte) (bool, map[string]interface{}){
 					//If the email has not been sent we delete the new row of the uuid for avoiding duplicate keys
 					DeleteUuidRow(EmailUuid)
 
-					//Also we must delete the user from the DB and from Keycloak
-					//DeleteUser(dni)
-					//DeleteUserFromKeycloak(id)
+					//Also we must delete the user from the DB and from Keycloak for new sign up
+					DeleteUserStatement(newEmployee.User.DNI)
+					DeleteKeycloakUser(id)
 					return ok, response
 				} else {
 					return ok, response
@@ -164,8 +164,8 @@ func PatientSignInVerification(reqBody []byte) (bool, map[string]interface{}){
 					DeleteUuidRow(EmailUuid)
 
 					//Also we must delete the user from the DB and from Keycloak
-					//DeleteUser(dni)
-					//DeleteUserFromKeycloak(id)
+					DeleteUserStatement(newPatient.User.DNI)
+					DeleteKeycloakUser(id)
 					return ok, response
 				} else {
 					return ok, response

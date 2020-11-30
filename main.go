@@ -187,7 +187,7 @@ func verifyEmail(w http.ResponseWriter, r *http.Request){
 			setAnswer(map[string]interface{}{"state": "Imposible verificar el correo"}, w, http.StatusInternalServerError)
 		} else {
 
-			//Once the expiration date is updated we mustsend the email
+			//Once the expiration date is updated we must send the email
 			if ok, response := ResendVerificationEmail(uuid); !ok{
 				setAnswer(response, w, http.StatusPreconditionFailed)
 			} else {

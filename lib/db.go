@@ -3,7 +3,6 @@ package lib
 import (
 	"TFG/API-REST/structures"
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -119,6 +118,15 @@ func InsertPatientQuery(sqlStatement string, patient structures.Patient) (bool){
 	return true
 }
 
+func DoDeleteUserQuery(sqlStatement, dni string) bool{
+	_, err := db.Exec(context.Background(), sqlStatement, dni)
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+	return true
+}
+
 func DoSelectExpTimeFromUniqueUrl(sqlStatement, uuid string) (int64){
 
 	var expTime int64
@@ -177,22 +185,4 @@ func DoUpdateExpTime(sqlStatement, newExpTime, uuid string) bool{
 	return true
 }
 
-
-func updateQuery(db *sql.DB){
-	sqlStatement := "UPDATE employee set name=($1), surname=($2) where dni=($3)"
-
-	_, err := db.Exec(sqlStatement, "DANIEL", "MOLINA RUBIO", "09089691E")
-	if err != nil {
-		panic(err)
-	}
-}
-
-func deleteQuery(db *sql.DB){
-	sqlStatement := "DELETE FROM employee where dni=($1)"
-
-	_, err := db.Exec(sqlStatement,  "09089691E")
-	if err != nil {
-		panic(err)
-	}
-}
 

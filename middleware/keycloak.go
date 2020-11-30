@@ -89,7 +89,7 @@ func createKeycloakUser(userDni, password, role string) (bool, string) {
 	if !updateUserRole(userDni, password, role, userId){
 		lib.TerminalLogger.Info("Impossible to update the role", err)
 		lib.DocuLogger.Info("Impossible to update the role", err)
-		deleteKeycloakUser(userDni, password, userId)
+		DeleteKeycloakUser(userId)
 		return false, ""
 	}
 	lib.TerminalLogger.Info("User created, answer: ")
@@ -129,7 +129,7 @@ func updateUserEnabled(userId string) bool {
 	}
 }
 
-func deleteKeycloakUser(userDni, password, userId string) bool{
+func DeleteKeycloakUser(userId string) bool{
 
 	err := client.DeleteUser(ctx, getAdminToken(), data.UserRealm, userId)
 	if err != nil{
