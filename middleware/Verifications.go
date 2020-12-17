@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"TFG/API-REST/lib"
+	"TFG/API-REST/structures"
 	"github.com/badoux/checkmail"
 	"strconv"
 	"strings"
@@ -11,13 +12,37 @@ import (
 
 var letters = []string{"T", "R", "W", "A", "G", "M", "Y", "F", "P", "D", "X", "B", "N",	"J", "Z", "S", "Q",	"V", "H", "L", "C", "K", "E"}
 
-func signUpVerifications(condition, dni, phone, email, password string) (bool, map[string]interface{}){
+func userDataVerifications(condition, dni, phone, email, password string) (bool, map[string]interface{}){
 
-	//verify if the DNI is correct and if it exists in the DB
+
+	//verify if the email is correct and if it exists in the DB
+	if !verifyEmail(email){
+		return false, map[string]interface{}{"state": "Correo no válido"}
+	} else if checkIfExists(condition,"email", email){
+		if ok, response := newUserUpdateVerifications(email); ok{
+			return ok, response
+		}
+		//if the email exists we must take the dni a check if is a dni or a new user
+		//if the dni is from a new user we must update the user and return true
+		//if the dni is not from a new user we return false
+		//before updating the user we have to verify the data
+		return false, map[string]interface{}{"state": "Ya existe este correo"}
+	} else{
+		//If the email doesnt exists in the DB we continue with the verification
+		if ok, response := dataFormVerification(dni, phone, password); !ok{
+			return ok, response
+		} else{
+			return verifyIfSomeDataExist(condition, dni, phone)
+		}
+	}
+
+}
+
+func dataFormVerification(dni, phone, password string) (bool, map[string]interface{}) {
+
+	//verify if the DNI is correct
 	if !verifyDNI(dni){
 		return false, map[string]interface{}{"state": "DNI incorrecto"}
-	} else if checkIfExists(condition,"dni", dni){
-		return false, map[string]interface{}{"state": "Ya existe este DNI"}
 	}
 
 	//Verify if the password is strong
@@ -25,22 +50,48 @@ func signUpVerifications(condition, dni, phone, email, password string) (bool, m
 		return false, map[string]interface{}{"state": "Contraseña débil"}
 	}
 
-	//verify if the email is correct and if it exists in the DB
-	if !verifyEmail(email){
-		return false, map[string]interface{}{"state": "Correo no válido"}
-	} else if checkIfExists(condition,"email", email){
-		return false, map[string]interface{}{"state": "Ya existe este correo"}
-	}
-
 	//verify if the phone is correct and if it exists in the DB
 	if !verifyPhoneNumber(phone){
 		return false, map[string]interface{}{"state": "teléfono no válido"}
-	} else if checkIfExists(condition,"phone", phone){
+	}
+	//If everything is correct return true
+	return true, nil
+}
+
+func verifyIfSomeDataExist(condition, dni, phone string) (bool, map[string]interface{}) {
+
+	//verify if the dni doesnt exist in the DDBB
+	if checkIfExists(condition,"dni", dni){
+		return false, map[string]interface{}{"state": "Ya existe este DNI"}
+	}
+
+	//verify if the phone doesnt exist in the DDBB
+	if checkIfExists(condition,"phone", phone){
 		return false, map[string]interface{}{"state": "Ya existe este número de teléfono"}
 	}
 
 	//If everything is correct return true
-	return true, map[string]interface{}{"state": ""}
+	return true, nil
+
+}
+
+func newUserUpdateVerifications(email, dni string) (bool, map[string]interface{}){
+	//if the email exists we must take the dni a check if is a dni or a new user
+	//if the dni is from a new user to verify that is him we comparrer the phone numbers we must update the user and return true
+	//if the dni is not from a new user we return false
+	//before updating the user we have to verify the data
+	//PROBLEM I dont have all the user's data to update it
+	//SOLUTION dont have data pe data as parameter and have the struct with all the data
+	//or do all the verifications one method before
+	dniFromDB := getStringFromUsersWithEmail("dni", email)
+	if (verifyDNI(dniFromDB)){
+		return false, nil
+	}
+
+	phoneFromDB := getStringFromUsersWithEmail("phone", email)
+
+
+
 }
 
 func verifyDNI(dni string) bool{
@@ -199,5 +250,29 @@ func VerifyExpTime(unixExpTime int64) (bool) {
 		lib.DocuLogger.Error("The slug is correct and it is not expired")
 		return true
 	}
+}
+
+func verifyAppointmentData(appointmentData structures.Appointment) (bool, map[string]interface{}) {
+	if !verifyEmail(appointmentData.Employee_email){
+		return false, map[string]interface{}{"state": "Correo no válido"}
+	} else if checkIfExists("employee","email", appointmentData.Employee_email){
+		return false, map[string]interface{}{"state": "Ya existe este correo"}
+	}
+
+	if !verifyEmail(appointmentData.Patient_email){
+		return false, map[string]interface{}{"state": "Correo no válido"}
+	} else if checkIfExists("patients","email", appointmentData.Patient_email){
+		return false, map[string]interface{}{"state": "Ya existe este correo"}
+	}
+
+	verifyTime(appointmentData.Year, appointmentData.Month, appointmentData.Day, appointmentData.Hour, appointmentData.Minute)
+
+		//verify time
+
+	return true, nil
+}
+
+func verifyTime(year, month, day, hour, minute int) bool{
+
 }
 

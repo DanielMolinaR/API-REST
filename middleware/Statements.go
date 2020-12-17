@@ -27,7 +27,7 @@ func doEmployeeInsert(employee structures.Employee) (bool, string) {
 	} else {
 
 		//if the employee has been inserted in the DB correctly now is inserted into keycloak
-		if ok, userid := createKeycloakUser(employee.User.DNI, employee.User.Password, "EMPLOYEE_ROLE"); !ok{
+		if ok, userid := createKeycloakUser(employee.User.DNI, employee.User.Password, employee.User.Email, "EMPLOYEE_ROLE"); !ok{
 
 			//As the user could not be saved in keycloak It must be deleted in the DB
 			DeleteUserStatement(employee.User.DNI)
@@ -47,7 +47,7 @@ func doPatientInsert(patient structures.Patient) (bool, string) {
 	} else {
 
 		//if the patient has been inserted in the DB correctly now is inserted into keycloak
-		if ok, userid := createKeycloakUser(patient.User.DNI, patient.User.Password, "PATIENT_ROLE"); !ok{
+		if ok, userid := createKeycloakUser(patient.User.DNI, patient.User.Password, patient.User.Email, "PATIENT_ROLE"); !ok{
 
 			//As the user couldnt be saved in keycloak It must be deleted in the DB
 			DeleteUserStatement(patient.User.DNI)
@@ -69,7 +69,7 @@ func getExpTimeFromUuid(uuid string) (int64){
 }
 
 func insertUuidExpTimeAndUserId(uuid, userId, email string) bool{
-	sqlStatement := "INSERT INTO UniqueUrl VALUES ($1, $2, $3, $4);"
+	sqlStatement := "INSERT INTO UniqueUrl (uuid, expiration_date, user_id, email) VALUES ($1, $2, $3, $4);"
 	expTime := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day() + 3, time.Now().Hour(), time.Now().Minute(), time.Now().Second(),0, time.UTC)
 	return DoUniqueUrlTableInsert(sqlStatement, uuid, expTime.String()[:20], userId, email)
 }
@@ -95,8 +95,8 @@ func getEmailFromUuid(uuid string) string {
 	return DoSelectOneString(sqlStatement, uuid)
 }
 
-func getNameFromUsersWithEmail(email string) string {
-	sqlStatement := "SELECT name FROM users WHERE email = $1"
+func getStringFromUsersWithEmail(dataToRetrieve, email string) string {
+	sqlStatement := "SELECT " +dataToRetrieve + " FROM users WHERE email = $1"
 	return DoSelectOneString(sqlStatement, email)
 }
 

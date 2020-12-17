@@ -79,7 +79,7 @@ func generateAndSendUniqueUrlForSignUp (w http.ResponseWriter, r *http.Request) 
 		} else {
 
 			//We get the info and verify it, if it's correct the email is sent
-			if ok, response := VerifyAndSendEmail(reqBody); !ok{
+			if ok, response := VerifyDataAndSendUniqueEmail(reqBody); !ok{
 				setAnswer(response ,w, http.StatusPreconditionFailed)
 			} else {
 				setAnswer(response ,w, http.StatusOK)
@@ -151,7 +151,8 @@ func patientSignUp(w http.ResponseWriter,r *http.Request){
 	} else {
 
 		//In PatientSignInVerification the data from the user is verified and if it's correct the user in saved in the DB
-		if	ok, response := PatientSignInVerification(reqBody); !ok{
+		if	ok, response := PatientSignUpVerification(reqBody); !ok{
+			setAnswer(response, w, http.StatusPreconditionFailed)
 		} else {
 			lib.TerminalLogger.Info("Patient created")
 			lib.DocuLogger.Info("Patient created")
@@ -207,8 +208,34 @@ func verifyEmail(w http.ResponseWriter, r *http.Request){
 	}
 }
 
-func Appointments(w http.ResponseWriter, r *http.Request){
+func createAppointments(w http.ResponseWriter, r *http.Request){
+	lib.TerminalLogger.Trace("Creating an appointment from: ", r.Host)
+	lib.DocuLogger.Trace("Creating an appointment from: ", r.Host)
 
+	//Read the authorization header
+	AuthHeader := r.Header.Get("Authorization")
+
+	//Extract the Bearer from the data of the header
+	token := strings.Replace(AuthHeader, "Bearer ", "", -1)
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		lib.TerminalLogger.Error("Impossible to read the data from the JSON")
+		lib.DocuLogger.Error("Impossible to read the data from the JSON")
+		setAnswer(map[string]interface{}{"state": "Imposible leer la información del body"}, w, http.StatusInternalServerError)
+
+	//Check if the token is valid
+	} else if !VerifyToken(token){
+		setAnswer(map[string]interface{}{"state": "Token no válido"} ,w, http.StatusNotAcceptable)
+
+	//Verify if the user that is requesting this endpoint is an employee or an admin
+	} else if GetTheRole(token)< 2 {
+		lib.TerminalLogger.Warn("Someone who is not an Amdin is trying to generate an unique URL: ", r.Host)
+		lib.DocuLogger.Warn("Someone who is not an Amdin is trying to generate an unique URL: ", r.Host)
+		setAnswer(map[string]interface{}{"state": "Acceso restringido"} ,w, http.StatusNotAcceptable)
+	} else {
+		VerifySendAndNotifyAppointment(reqBody)
+	}
 }
 
 func setAnswer(response map[string]interface{}, w http.ResponseWriter, state http.ConnState){
@@ -229,7 +256,17 @@ func main() {
 	router.HandleFunc("/employee-signUp", employeeSignUp).Methods(http.MethodPost, http.MethodOptions)
 	router.HandleFunc("/patient-signUp", patientSignUp).Methods(http.MethodPost, http.MethodOptions)
 	router.HandleFunc("/verify-email", verifyEmail).Methods(http.MethodPatch, http.MethodOptions)
-	router.HandleFunc("/appointments", Appointments).Methods("GET", "OPTIONS")
+	router.HandleFunc("/create-appointments", createAppointments).Methods(http.MethodPost, http.MethodOptions)
+	router.HandleFunc("/create-exercises", createExercises).Methods(http.MethodPost, http.MethodOptions)
+	router.HandleFunc("/get-appointments", getAppointments).Methods(http.MethodGet, http.MethodOptions)
+	router.HandleFunc("/getAll-appointments", getAllAppointments).Methods(http.MethodGet, http.MethodOptions)
+	router.HandleFunc("/get-exercises", getAppointments).Methods(http.MethodGet, http.MethodOptions)
+	router.HandleFunc("/update-appointment", updateAppointments).Methods(http.MethodPut, http.MethodOptions)
+	router.HandleFunc("/update-exercise", updateExercises).Methods(http.MethodPut, http.MethodOptions)
+	router.HandleFunc("/delete-appointment", deleteAppointments).Methods(http.MethodDelete, http.MethodOptions)
+	router.HandleFunc("/delete-exercise", deleteExercises).Methods(http.MethodDelete, http.MethodOptions)
+
+
 
 	//handler := c.Handler(router)
 	router.Use(mux.CORSMethodMiddleware(router))

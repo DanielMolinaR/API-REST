@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Nerzal/gocloak/v7"
-	"github.com/dgrijalva/jwt-go/v4"
 	"io/ioutil"
 	"os"
 )
@@ -66,7 +65,7 @@ func UserCredentialsLogin(userDni, password string) (bool, string, string) {
 	return true, userToken.AccessToken, userToken.RefreshToken
 }
 
-func createKeycloakUser(userDni, password, role string) (bool, string) {
+func createKeycloakUser(userDni, password, email, role string) (bool, string) {
 
 	user := gocloak.User{
 		Enabled:   gocloak.BoolP(false),
@@ -78,6 +77,7 @@ func createKeycloakUser(userDni, password, role string) (bool, string) {
 				Value:     gocloak.StringP(password),
 			},
 		},
+		Email: gocloak.StringP(email),
 	}
 
 	userId, err := client.CreateUser(ctx, getAdminToken(), data.UserRealm, user)
@@ -131,6 +131,9 @@ func updateUserEnabled(userId string) bool {
 
 func DeleteKeycloakUser(userId string) bool{
 
+	//we never are going to delete someone from keycloak or the database
+	//we need them and their data so what we do is making disabled the keycloak user
+
 	err := client.DeleteUser(ctx, getAdminToken(), data.UserRealm, userId)
 	if err != nil{
 		return false
@@ -147,35 +150,4 @@ func getUserId(userDni, password string) string{
 		return ""
 	}
 	return *userInfo.Sub
-}
-
-func DecodeToken(userToken string) *jwt.MapClaims {
-
-	_, claims, err := client.DecodeAccessToken(ctx, userToken, data.UserRealm, "account")
-
-	if err!=nil{
-		lib.TerminalLogger.Info("Problem with the decoding", err)
-		lib.DocuLogger.Info("Problem with the decoding", err)
-		return nil
-	}
-
-	return claims
-
-}
-
-func VerifyToken(token string) bool{
-	//Retrospect the token
-	rptResult, err := client.RetrospectToken(ctx, token, data.ClientId, data.Secret, data.UserRealm)
-	if err != nil {
-		lib.TerminalLogger.Error("Problem retrospecting the token", err)
-		lib.DocuLogger.Error("Problem retrospecting the token", err)
-	}
-	//Check if the token is active
-	if rptResult != nil {
-		if *rptResult.Active {
-			return true
-		}
-	}
-	return false
-
 }

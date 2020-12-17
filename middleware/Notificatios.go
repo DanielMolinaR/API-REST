@@ -13,6 +13,7 @@ import (
 )
 
 var secret Users
+var months = []string{"Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"}
 
 func init() {
 	dataconfig, err := os.Open("./API-REST/middleware/ePassword.json")
@@ -51,10 +52,10 @@ func (s *smtpServer) Address() string {
 	return s.host + ":" + s.port
 }
 
-func CreateEmail(uuid, name, email, path string) (bool, map[string]interface{}) {
+func CreateVerificationEmail(uuid, name, email, path string, condition int) (bool, map[string]interface{}) {
 
 	url := "http://localhost:8081/" + path + "/" + uuid
-	if !sendEmail(name, email, url) {
+	if !sendEmail(name, email, url, condition) {
 		lib.TerminalLogger.Error("Impossible to send the email")
 		lib.DocuLogger.Error("Impossible to send the email")
 		return false, map[string]interface{}{"state": "Imposible enviar el correo"}
@@ -65,7 +66,7 @@ func CreateEmail(uuid, name, email, path string) (bool, map[string]interface{}) 
 	}
 }
 
-func sendEmail(name, email, url string) bool {
+func sendEmail(name, url, email string, condition int) bool {
 	// Sender data.
 	from := secret.Email
 	password := secret.Password
@@ -85,10 +86,25 @@ func sendEmail(name, email, url string) bool {
 	emailToSend := []string{email}
 
 	r := NewRequest(emailToSend, "BIENVENIDO", "")
-	err := r.ParseTemplate("C:/Users/Daniel/go/src/TFG/API-REST/middleware/template.html", templateData)
-	if err != nil {
-		lib.TerminalLogger.Error("Problems parsing the tempalte: " + err.Error())
-		lib.DocuLogger.Error("Problems parsing the tempalte: " + err.Error())
+
+	switch condition{
+	case 0: //Case where the email is sent for a the SignUp of a new employee
+		err := r.ParseTemplate("C:/Users/Daniel/go/src/TFG/API-REST/middleware/Employee_signUp_template.html", templateData)
+		if err != nil {
+			lib.TerminalLogger.Error("Problems parsing the tempalte: " + err.Error())
+			lib.DocuLogger.Error("Problems parsing the tempalte: " + err.Error())
+			return false
+		}
+		break;
+	case 1: //Case where the email is sent for verify the email address of the user
+		err := r.ParseTemplate("C:/Users/Daniel/go/src/TFG/API-REST/middleware/Email_verification_template.html", templateData)
+		if err != nil {
+			lib.TerminalLogger.Error("Problems parsing the tempalte: " + err.Error())
+			lib.DocuLogger.Error("Problems parsing the tempalte: " + err.Error())
+			return false
+		}
+		break;
+	default:
 		return false
 	}
 
@@ -106,7 +122,7 @@ func sendEmail(name, email, url string) bool {
 	msg := []byte(to + subject + mime + "\n" + r.body)
 
 	// Sending email.
-	err = smtp.SendMail(smtpServer.Address(), auth, "pruebaapifisio@gmail.com", r.to, msg)
+	err := smtp.SendMail(smtpServer.Address(), auth, "pruebaapifisio@gmail.com", r.to, msg)
 	if err != nil {
 		lib.TerminalLogger.Error("Problems sending the email: " + err.Error())
 		lib.DocuLogger.Error("Problems sending the email: " + err.Error())
