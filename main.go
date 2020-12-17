@@ -22,22 +22,13 @@ func login (w http.ResponseWriter, r *http.Request) {
 	token := strings.Replace(AuthHeader, "Bearer ", "", -1)
 
 	//Check if the token is valid
-	if len(token)>0 {
-		if !VerifyToken(token) {
-			lib.DocuLogger.Trace("The token wasnt valid")
-			setAnswer(map[string]interface{}{"state": "Token no válido"}, w, http.StatusNotAcceptable)
-		} else {
-			lib.TerminalLogger.Trace("The user has logged in thanks to his token")
-			lib.DocuLogger.Trace("The user has logged in thanks to his token")
-			setAnswer(map[string]interface{}{"state": "Sesión iniciada gracias al token"}, w, http.StatusAccepted)
-		}
+	if VerifyToken(token) {
+		lib.TerminalLogger.Trace("The user has logged in thanks to his token")
+		lib.DocuLogger.Trace("The user has logged in thanks to his token")
+		setAnswer(map[string]interface{}{"state": "Sesión iniciada gracias al token"}, w, http.StatusAccepted)
 	} else {
 
-		// Convert r.Body into a readable formart
-		reqBody, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			lib.TerminalLogger.Error("Impossible to read the data from the request")
-			lib.DocuLogger.Error("Impossible to read the data from the request")
+		if ok, reqBody := readBody(r); !ok {
 			setAnswer(map[string]interface{}{"state": "Imposible leer la información"} ,w, http.StatusInternalServerError)
 		} else {
 
@@ -56,25 +47,12 @@ func generateAndSendUniqueUrlForSignUp (w http.ResponseWriter, r *http.Request) 
 	//Read the authorization header
 	AuthHeader := r.Header.Get("Authorization")
 
-	//Extract the Bearer from the data of the header
-	token := strings.Replace(AuthHeader, "Bearer ", "", -1)
-
-	//Check if the token is valid
-	if !VerifyToken(token){
-		setAnswer(map[string]interface{}{"state": "Token no válido"} ,w, http.StatusNotAcceptable)
-
-	//Verify if the user that is requesting this endpoint is an admin
-	} else if GetTheRole(token)!= 2{
+	if ok, response := VerifyTokenIsFromAdmin(AuthHeader); !ok {
 		lib.TerminalLogger.Warn("Someone who is not an Amdin is trying to generate an unique URL: ", r.Host)
 		lib.DocuLogger.Warn("Someone who is not an Amdin is trying to generate an unique URL: ", r.Host)
-		setAnswer(map[string]interface{}{"state": "Acceso restringido"} ,w, http.StatusNotAcceptable)
+		setAnswer(response, w, http.StatusPreconditionFailed)
 	} else {
-
-		// Convert r.Body into a readable formart
-		reqBody, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			lib.TerminalLogger.Error("Impossible to read the data from the JSON")
-			lib.DocuLogger.Error("Impossible to read the data from the JSON")
+		if ok, reqBody := readBody(r); !ok {
 			setAnswer(map[string]interface{}{"state": "Imposible leer la información"} ,w, http.StatusInternalServerError)
 		} else {
 
@@ -111,16 +89,12 @@ func employeeSignUp(w http.ResponseWriter,r *http.Request){
 
 		//If it's expired we must delete the row from the table and wait for a new one
 		DeleteUuidRow(SignUpUuid)
-		setAnswer(map[string]interface{}{"state": "Tiempo para crear la cuenta expirado"}, w, http.StatusInternalServerError)
+		setAnswer(map[string]interface{}{"state": "Tiempo para crear la cuenta ha expirado"}, w, http.StatusInternalServerError)
 	} else{
 
 		//If the slug is correct and it's not expired we sign up the new employee
-		// Convert r.Body into a readable formart
-		reqBody, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			lib.TerminalLogger.Error("Impossible to read the data from the JSON")
-			lib.DocuLogger.Error("Impossible to read the data from the JSON")
-			setAnswer(map[string]interface{}{"state": "Imposible leer la información del body"} ,w, http.StatusInternalServerError)
+		if ok, reqBody := readBody(r); !ok {
+			setAnswer(map[string]interface{}{"state": "Imposible leer la información"} ,w, http.StatusInternalServerError)
 		} else {
 
 			//In EmployeeSignUpVerification the data from the user is verified and if it's correct the user in saved in the DB
@@ -142,22 +116,17 @@ func patientSignUp(w http.ResponseWriter,r *http.Request){
 	lib.TerminalLogger.Trace("Verifying an email from: ", r.Host)
 	lib.DocuLogger.Trace("Verifying an email from: ", r.Host)
 
-	// Convert r.Body into a readable formart
-	reqBody, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		lib.TerminalLogger.Error("Impossible to read the data from the JSON")
-		lib.DocuLogger.Error("Impossible to read the data from the JSON")
-		setAnswer(map[string]interface{}{"state": "Imposible leer la información del body"} ,w, http.StatusInternalServerError)
+	if ok, reqBody := readBody(r); !ok {
+		setAnswer(map[string]interface{}{"state": "Imposible leer la información"} ,w, http.StatusInternalServerError)
 	} else {
 
-		//In PatientSignInVerification the data from the user is verified and if it's correct the user in saved in the DB
+		//In PatientSignUpVerification the data from the user is verified and if it's correct the user in saved in the DB
 		if	ok, response := PatientSignUpVerification(reqBody); !ok{
 			setAnswer(response, w, http.StatusPreconditionFailed)
 		} else {
 			lib.TerminalLogger.Info("Patient created")
 			lib.DocuLogger.Info("Patient created")
-			w.WriteHeader(http.StatusCreated)
-			_ = json.NewEncoder(w).Encode(response)
+			setAnswer(response, w, http.StatusCreated)
 		}
 	}
 }
@@ -183,7 +152,7 @@ func verifyEmail(w http.ResponseWriter, r *http.Request){
 		setAnswer(map[string]interface{}{"state": "El slug no existe"}, w, http.StatusNotAcceptable)
 	}else if !VerifyExpTime(expTime){
 
-		//If its expired we must update the expiration date and send the email again
+		//If it's expired we must update the expiration date and send the email again
 		if !UpdateExpTimeFromUuid(uuid) {
 			setAnswer(map[string]interface{}{"state": "Imposible verificar el correo"}, w, http.StatusInternalServerError)
 		} else {
@@ -192,8 +161,8 @@ func verifyEmail(w http.ResponseWriter, r *http.Request){
 			if ok, response := ResendVerificationEmail(uuid); !ok{
 				setAnswer(response, w, http.StatusPreconditionFailed)
 			} else {
-				lib.TerminalLogger.Info("Employee created")
-				lib.DocuLogger.Info("Employee created")
+				lib.TerminalLogger.Info("Email sent")
+				lib.DocuLogger.Info("Email sent")
 				setAnswer(response, w, http.StatusCreated)
 			}
 		}
@@ -215,32 +184,48 @@ func createAppointments(w http.ResponseWriter, r *http.Request){
 	//Read the authorization header
 	AuthHeader := r.Header.Get("Authorization")
 
-	//Extract the Bearer from the data of the header
-	token := strings.Replace(AuthHeader, "Bearer ", "", -1)
-
-	reqBody, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		lib.TerminalLogger.Error("Impossible to read the data from the JSON")
-		lib.DocuLogger.Error("Impossible to read the data from the JSON")
-		setAnswer(map[string]interface{}{"state": "Imposible leer la información del body"}, w, http.StatusInternalServerError)
-
-	//Check if the token is valid
-	} else if !VerifyToken(token){
-		setAnswer(map[string]interface{}{"state": "Token no válido"} ,w, http.StatusNotAcceptable)
-
-	//Verify if the user that is requesting this endpoint is an employee or an admin
-	} else if GetTheRole(token)< 2 {
-		lib.TerminalLogger.Warn("Someone who is not an Amdin is trying to generate an unique URL: ", r.Host)
-		lib.DocuLogger.Warn("Someone who is not an Amdin is trying to generate an unique URL: ", r.Host)
-		setAnswer(map[string]interface{}{"state": "Acceso restringido"} ,w, http.StatusNotAcceptable)
-	} else {
-		VerifySendAndNotifyAppointment(reqBody)
+	if ok, response := VerifyTokenIsFromEmployeeOrAdmin(AuthHeader); !ok{
+		setAnswer(response, w, http.StatusPreconditionFailed)
+	} else{
+		if ok, reqBody := readBody(r); !ok {
+			setAnswer(map[string]interface{}{"state": "Imposible leer la información"} ,w, http.StatusInternalServerError)
+		} else {
+			VerifySendAndNotifyAppointment(reqBody)
+		}
 	}
 }
 
-func setAnswer(response map[string]interface{}, w http.ResponseWriter, state http.ConnState){
-	w.WriteHeader(http.StatusPreconditionFailed)
+func createExercises(w http.ResponseWriter, r *http.Request) {
+	lib.TerminalLogger.Trace("Creating an exercise from: ", r.Host)
+	lib.DocuLogger.Trace("Creating an exercise from: ", r.Host)
+
+	//Read the authorization header
+	AuthHeader := r.Header.Get("Authorization")
+
+	if ok, response := VerifyTokenIsFromEmployeeOrAdmin(AuthHeader); !ok{
+		setAnswer(response, w, http.StatusPreconditionFailed)
+	} else{
+
+	}
+
+
+}
+
+func setAnswer(response map[string]interface{}, w http.ResponseWriter, state int){
+	w.WriteHeader(state)
 	_ = json.NewEncoder(w).Encode(response)
+}
+
+func readBody(r *http.Request) (bool, []byte){
+
+	// Convert r.Body into a readable formart
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		lib.TerminalLogger.Error("Impossible to read the data from the request")
+		lib.DocuLogger.Error("Impossible to read the data from the request")
+		return false, nil
+	}
+	return true, reqBody
 }
 
 func main() {

@@ -87,7 +87,7 @@ func EmployeeSignUpVerification(reqBody []byte) (bool, map[string]interface{}){
 		if !ok {
 			return false, response
 
-		//If all the data is correct the user is inserted in the DB and Keycloak but no enabled for login
+		//If all the data is correct, the user is inserted in the DB and Keycloak but disabled for login
 		} else if ok, id := doEmployeeInsert(newEmployee); !ok {
 			return false, map[string]interface{}{"state": "Imposible añadir el usuario en la BBDD"}
 		} else {
@@ -102,7 +102,7 @@ func EmployeeSignUpVerification(reqBody []byte) (bool, map[string]interface{}){
 					//If the email has not been sent we delete the new row of the uuid for avoiding duplicate keys
 					DeleteUuidRow(EmailUuid)
 
-					//Also we must delete the user from the DB and from Keycloak for new sign up
+					//Also we must delete the user from the DB and from Keycloak for future sign up
 					DeleteUserStatement(newEmployee.User.DNI)
 					DeleteKeycloakUser(id)
 					return ok, response

@@ -4,6 +4,8 @@ import (
 	"TFG/API-REST/lib"
 	"TFG/API-REST/structures"
 	"github.com/badoux/checkmail"
+	"io/ioutil"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -275,4 +277,5 @@ func verifyAppointmentData(appointmentData structures.Appointment) (bool, map[st
 func verifyTime(year, month, day, hour, minute int) bool{
 
 }
+
 

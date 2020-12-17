@@ -4,9 +4,10 @@ import (
 	"TFG/API-REST/lib"
 	"fmt"
 	"github.com/dgrijalva/jwt-go/v4"
+	"strings"
 )
 
-func GetTheRole(token string) int {
+func getTheRole(token string) int {
 	claims_token := decodeToken(token)
 	allTheRoles := (*claims_token)["realm_access"].(map[string]interface{})["roles"]
 	data := allTheRoles.([]interface{})
@@ -57,4 +58,37 @@ func VerifyToken(token string) bool{
 	}
 	return false
 
+}
+
+func VerifyTokenIsFromEmployeeOrAdmin(tokenBrearer string) (bool, map[string]interface{}) {
+
+	//Extract the Bearer from the data of the header
+	token := strings.Replace(tokenBrearer, "Bearer ", "", -1)
+
+	if !VerifyToken(token){
+		return false, map[string]interface{}{"state": "Token no válido"}
+
+		//Verify if the user that is requesting this endpoint is an employee or an admin
+	} else if getTheRole(token)< 2 {
+		lib.TerminalLogger.Warn("Someone who is not an Amdin or employee is trying to do something restricted")
+		lib.DocuLogger.Warn("Someone who is not an Amdin or employee is triying to do something restricted")
+		return false, map[string]interface{}{"state": "Acceso restringido"}
+	}
+	return true, nil
+}
+
+func VerifyTokenIsFromAdmin(tokenBrearer string) (bool, map[string]interface{}) {
+
+	//Extract the Bearer from the data of the header
+	token := strings.Replace(tokenBrearer, "Bearer ", "", -1)
+
+	if !VerifyToken(token){
+		return false, map[string]interface{}{"state": "Token no válido"}
+
+		//Verify if the user that is requesting this endpoint is an employee or an admin
+	} else if getTheRole(token) != 2 {
+
+		return false, map[string]interface{}{"state": "Acceso restringido"}
+	}
+	return true, nil
 }
