@@ -69,7 +69,7 @@ func VerifyTokenIsFromEmployeeOrAdmin(tokenBrearer string) (bool, map[string]int
 		return false, map[string]interface{}{"state": "Token no válido"}
 
 		//Verify if the user that is requesting this endpoint is an employee or an admin
-	} else if getTheRole(token)< 2 {
+	} else if getTheRole(token)< 1 {
 		lib.TerminalLogger.Warn("Someone who is not an Amdin or employee is trying to do something restricted")
 		lib.DocuLogger.Warn("Someone who is not an Amdin or employee is triying to do something restricted")
 		return false, map[string]interface{}{"state": "Acceso restringido"}

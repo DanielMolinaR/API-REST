@@ -81,7 +81,7 @@ func employeeSignUp(w http.ResponseWriter,r *http.Request){
 	expTime := VerifyUuidAndGetExpTime(SignUpUuid)
 
 	//verify the expiration date
-	if (expTime == 0){
+	if expTime == 0{
 		lib.TerminalLogger.Error("Empty fields from the table uniqueUrl: ", SignUpUuid, " ", expTime)
 		lib.DocuLogger.Error("Empty fields from the table uniqueUrl", SignUpUuid, " ", expTime)
 		setAnswer(map[string]interface{}{"state": "El slug no existe"}, w, http.StatusNotAcceptable)
@@ -146,7 +146,7 @@ func verifyEmail(w http.ResponseWriter, r *http.Request){
 	expTime := VerifyUuidAndGetExpTime(uuid)
 
 	//verify expiration date
-	if (expTime == 0){
+	if expTime == 0{
 		lib.TerminalLogger.Error("Empty fields from the table uniqueUrl: ", uuid, " ", expTime)
 		lib.DocuLogger.Error("Empty fields from the table uniqueUrl", uuid, " ", expTime)
 		setAnswer(map[string]interface{}{"state": "El slug no existe"}, w, http.StatusNotAcceptable)
@@ -190,7 +190,12 @@ func createAppointments(w http.ResponseWriter, r *http.Request){
 		if ok, reqBody := readBody(r); !ok {
 			setAnswer(map[string]interface{}{"state": "Imposible leer la información"} ,w, http.StatusInternalServerError)
 		} else {
-			VerifySendAndNotifyAppointment(reqBody)
+			ok, response := AppointmentMiddleware(reqBody)
+			if !ok {
+				setAnswer(response, w, http.StatusNotAcceptable)
+			} else {
+				setAnswer(response, w, http.StatusCreated)
+			}
 		}
 	}
 }
@@ -243,13 +248,13 @@ func main() {
 	router.HandleFunc("/verify-email", verifyEmail).Methods(http.MethodPatch, http.MethodOptions)
 	router.HandleFunc("/create-appointments", createAppointments).Methods(http.MethodPost, http.MethodOptions)
 	router.HandleFunc("/create-exercises", createExercises).Methods(http.MethodPost, http.MethodOptions)
-	router.HandleFunc("/get-appointments", getAppointments).Methods(http.MethodGet, http.MethodOptions)
+	/*router.HandleFunc("/get-appointments", getAppointments).Methods(http.MethodGet, http.MethodOptions)
 	router.HandleFunc("/getAll-appointments", getAllAppointments).Methods(http.MethodGet, http.MethodOptions)
 	router.HandleFunc("/get-exercises", getAppointments).Methods(http.MethodGet, http.MethodOptions)
 	router.HandleFunc("/update-appointment", updateAppointments).Methods(http.MethodPut, http.MethodOptions)
 	router.HandleFunc("/update-exercise", updateExercises).Methods(http.MethodPut, http.MethodOptions)
 	router.HandleFunc("/delete-appointment", deleteAppointments).Methods(http.MethodDelete, http.MethodOptions)
-	router.HandleFunc("/delete-exercise", deleteExercises).Methods(http.MethodDelete, http.MethodOptions)
+	router.HandleFunc("/delete-exercise", deleteExercises).Methods(http.MethodDelete, http.MethodOptions)*/
 
 
 

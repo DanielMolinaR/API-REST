@@ -108,11 +108,35 @@ func InsertEmployeeQuery(sqlStatement string, employee structures.Employee) (boo
 	return true
 }
 
+func SelectStringQuery(sqlStatement, data string) (bool, string){
+	var response string
+
+	rows := db.QueryRow(context.Background(), sqlStatement, data).Scan(&response)
+	if rows != nil {
+		return false, ""
+	}
+	TerminalLogger.Warn("The data has been found in the DDBB")
+	DocuLogger.Warn("The data has been found in the DDBB")
+	return true, response
+}
+
 func InsertPatientQuery(sqlStatement string, patient structures.Patient) (bool){
 	_, err := db.Exec(context.Background(), sqlStatement, patient.Birthdate, patient.User.DNI, patient.User.Email,
 		patient.User.Name, patient.User.Surname, patient.User.Phone)
 	if err != nil {
-		fmt.Println(err)
+		TerminalLogger.Error("Something went wrong inserting the patient", err)
+		DocuLogger.Error("Something went wrong inserting the patient", err)
+		return false
+	}
+	return true
+}
+
+func UpdatePatientQuery(sqlStatement string, patient structures.Patient) (bool){
+	_, err := db.Exec(context.Background(), sqlStatement, patient.Birthdate, patient.User.DNI, patient.User.Email,
+		patient.User.Name, patient.User.Surname, patient.User.Phone, patient.User.Email)
+	if err != nil {
+		TerminalLogger.Error("Something went wrong updating the patient", err)
+		DocuLogger.Error("Something went wrong updating the patient", err)
 		return false
 	}
 	return true
@@ -185,4 +209,23 @@ func DoUpdateExpTime(sqlStatement, newExpTime, uuid string) bool{
 	return true
 }
 
+func InsertNewUserQuery(sqlStatement, dni, email, name, phone string) bool {
+	_, err := db.Exec(context.Background(), sqlStatement, dni, email, name, phone)
+	if err != nil {
+		TerminalLogger.Error("Something went wrong inserting the new random user", err)
+		DocuLogger.Error("Something went wrong inserting the new random user", err)
+		return false
+	}
+	return true
+}
+
+func InsertAppointmentQuery(sqlStatement, date, employee_dni, patient_dni string) bool {
+	_, err := db.Exec(context.Background(), sqlStatement, date, employee_dni, patient_dni )
+	if err != nil {
+		TerminalLogger.Error("Something went wrong inserting the appointment", err)
+		DocuLogger.Error("Something went wrong inserting the appointment", err)
+		return false
+	}
+	return true
+}
 

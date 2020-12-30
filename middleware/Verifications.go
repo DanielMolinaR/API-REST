@@ -4,8 +4,6 @@ import (
 	"TFG/API-REST/lib"
 	"TFG/API-REST/structures"
 	"github.com/badoux/checkmail"
-	"io/ioutil"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -16,35 +14,56 @@ var letters = []string{"T", "R", "W", "A", "G", "M", "Y", "F", "P", "D", "X", "B
 
 func userDataVerifications(condition, dni, phone, email, password string) (bool, map[string]interface{}){
 
+	//verify if the DNI is correct and if it exists in the DB
+	if !verifyDNI(dni){
+		return false, map[string]interface{}{"state": "DNI incorrecto"}
+	} else if checkIfExists(condition,"dni", "dni", dni){
+		return false, map[string]interface{}{"state": "Ya existe este DNI"}
+	}
+
+	//Verify if the password is strong
+	if !verifyPasswordIsSafe(password){
+		return false, map[string]interface{}{"state": "Contraseña débil"}
+	}
 
 	//verify if the email is correct and if it exists in the DB
 	if !verifyEmail(email){
 		return false, map[string]interface{}{"state": "Correo no válido"}
-	} else if checkIfExists(condition,"email", email){
-		if ok, response := newUserUpdateVerifications(email); ok{
-			return ok, response
-		}
-		//if the email exists we must take the dni a check if is a dni or a new user
-		//if the dni is from a new user we must update the user and return true
-		//if the dni is not from a new user we return false
-		//before updating the user we have to verify the data
+	} else if checkIfExists(condition,"email", "email", email){
 		return false, map[string]interface{}{"state": "Ya existe este correo"}
-	} else{
-		//If the email doesnt exists in the DB we continue with the verification
-		if ok, response := dataFormVerification(dni, phone, password); !ok{
-			return ok, response
-		} else{
-			return verifyIfSomeDataExist(condition, dni, phone)
-		}
 	}
+
+	//verify if the phone is correct and if it exists in the DB
+	if !verifyPhoneNumber(phone){
+		return false, map[string]interface{}{"state": "teléfono no válido"}
+	}
+
+	//If everything is correct return true
+	return true, map[string]interface{}{"state": ""}
 
 }
 
-func dataFormVerification(dni, phone, password string) (bool, map[string]interface{}) {
+func verifyIfDniIsRandom(email string) bool{
+	if ok, dni := getStringFromField("patients", "dni", "email", email); !ok{
+		return false
+	} else {
 
-	//verify if the DNI is correct
+		//if the dni has a dni format return false
+		if verifyDNI(dni){
+			return false
+		} else {
+			return true
+		}
+	}
+}
+
+func existingPatientVerification(condition, dni, phone, email, password string) (bool, map[string]interface{}) {
+
+	//verify if the new DNI is correct and if it exists in the DB
 	if !verifyDNI(dni){
 		return false, map[string]interface{}{"state": "DNI incorrecto"}
+	} else if checkIfExists(condition,"dni", "dni", dni){
+		return false, map[string]interface{}{"state": "Ya existe este DNI"}
 	}
 
 	//Verify if the password is strong
@@ -56,43 +75,9 @@ func dataFormVerification(dni, phone, password string) (bool, map[string]interfa
 	if !verifyPhoneNumber(phone){
 		return false, map[string]interface{}{"state": "teléfono no válido"}
 	}
-	//If everything is correct return true
-	return true, nil
-}
-
-func verifyIfSomeDataExist(condition, dni, phone string) (bool, map[string]interface{}) {
-
-	//verify if the dni doesnt exist in the DDBB
-	if checkIfExists(condition,"dni", dni){
-		return false, map[string]interface{}{"state": "Ya existe este DNI"}
-	}
-
-	//verify if the phone doesnt exist in the DDBB
-	if checkIfExists(condition,"phone", phone){
-		return false, map[string]interface{}{"state": "Ya existe este número de teléfono"}
-	}
 
 	//If everything is correct return true
-	return true, nil
-
-}
-
-func newUserUpdateVerifications(email, dni string) (bool, map[string]interface{}){
-	//if the email exists we must take the dni a check if is a dni or a new user
-	//if the dni is from a new user to verify that is him we comparrer the phone numbers we must update the user and return true
-	//if the dni is not from a new user we return false
-	//before updating the user we have to verify the data
-	//PROBLEM I dont have all the user's data to update it
-	//SOLUTION dont have data pe data as parameter and have the struct with all the data
-	//or do all the verifications one method before
-	dniFromDB := getStringFromUsersWithEmail("dni", email)
-	if (verifyDNI(dniFromDB)){
-		return false, nil
-	}
-
-	phoneFromDB := getStringFromUsersWithEmail("phone", email)
-
-
+	return true, map[string]interface{}{"state": ""}
 
 }
 
@@ -254,28 +239,49 @@ func VerifyExpTime(unixExpTime int64) (bool) {
 	}
 }
 
-func verifyAppointmentData(appointmentData structures.Appointment) (bool, map[string]interface{}) {
-	if !verifyEmail(appointmentData.Employee_email){
-		return false, map[string]interface{}{"state": "Correo no válido"}
-	} else if checkIfExists("employee","email", appointmentData.Employee_email){
-		return false, map[string]interface{}{"state": "Ya existe este correo"}
+func verifyAppointmentData(appointmentData structures.Appointment, newUser bool) (bool, map[string]interface{}) {
+
+	if newUser {
+		//verify patient email
+		if !verifyEmail(appointmentData.Patient_email) {
+			return false, map[string]interface{}{"state": "Correo no válido"}
+		} else if checkIfExists("patients", "email", "email", appointmentData.Patient_email) {
+			return false, map[string]interface{}{"state": "Ya existe este correo"}
+		}
+
+		//verify patient phone number
+		if !verifyPhoneNumber(appointmentData.Patient_phone){
+			return false, map[string]interface{}{"state": "Número de telefono no válido"}
+		} else if checkIfExists("patients","phone", "phone", appointmentData.Patient_phone){
+			return false, map[string]interface{}{"state": "Ya existe este correo"}
+		}
+
+	} else {
+		if !checkIfExists("patients", "email", "email", appointmentData.Patient_email) {
+			return false, map[string]interface{}{"state": "El correo del paciente no existe"}
+		}
 	}
 
-	if !verifyEmail(appointmentData.Patient_email){
-		return false, map[string]interface{}{"state": "Correo no válido"}
-	} else if checkIfExists("patients","email", appointmentData.Patient_email){
-		return false, map[string]interface{}{"state": "Ya existe este correo"}
+	//verify employee email
+	if !checkIfExists("employee", "email", "email", appointmentData.Employee_email){
+		return false, map[string]interface{}{"state": "El correo del empleado no existe"}
 	}
 
-	verifyTime(appointmentData.Year, appointmentData.Month, appointmentData.Day, appointmentData.Hour, appointmentData.Minute)
-
-		//verify time
+	//verify date
+	if !verifyTime(appointmentData.Year, appointmentData.Month, appointmentData.Day, appointmentData.Hour, appointmentData.Minute){
+		return false, map[string]interface{}{"state": "Fecha no válida"}
+	}
 
 	return true, nil
 }
 
 func verifyTime(year, month, day, hour, minute int) bool{
+	date := time.Date(year, time.Month(month), day, hour, minute, 0, 0, time.UTC)
 
+	if time.Now().After(date){
+		return false
+	}
+	return true
 }
 
 

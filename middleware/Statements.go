@@ -6,9 +6,9 @@ import (
 	"time"
 )
 
-func checkIfExists (condition, dataToSelect, data string) bool {
+func checkIfExists (table, dataToSelect, fieldToCompare, data string) bool {
 
-	sqlStatement := "SELECT " + dataToSelect + " FROM " + condition +" WHERE "+ dataToSelect +" = $1"
+	sqlStatement := "SELECT " + dataToSelect + " FROM " + table +" WHERE "+ fieldToCompare +" = $1"
 	//Do the query which return a bool if exists
 	if !SelectQuery(sqlStatement, data){
 		TerminalLogger.Info("The " + dataToSelect +" doesnt exists in the DDBB")
@@ -38,6 +38,11 @@ func doEmployeeInsert(employee structures.Employee) (bool, string) {
 	}
 }
 
+func getStringFromField(table, dataToSelect, fieldToCompare, dataToCompare string) (bool, string){
+	 sqlStatement := "SELECT " + dataToSelect + " FROM " + table + " WHERE " + fieldToCompare + " = $1"
+	 return SelectStringQuery(sqlStatement, dataToCompare)
+}
+
 func doPatientInsert(patient structures.Patient) (bool, string) {
 
 	sqlStatement := "INSERT INTO Patients (birthdate, dni, email, name, surname, phone) " +
@@ -54,6 +59,22 @@ func doPatientInsert(patient structures.Patient) (bool, string) {
 			return ok, userid
 		} else {
 			return ok, userid
+		}
+	}
+}
+
+func doPatientUpdateAndInsert(patient structures.Patient) (bool, string) {
+
+	if ok, userid := createKeycloakUser(patient.User.DNI, patient.User.Password, patient.User.Email, "PATIENT_ROLE"); !ok{
+		return false, ""
+	} else{
+		sqlStatement := "UPDATE Patients SET bithdate = $1, dni = $2, email = $3, name = $4, surname = $5, phone = $6 " +
+			"WHERE email = $7"
+		if !UpdatePatientQuery(sqlStatement, patient){
+			DeleteKeycloakUser(userid)
+			return false, ""
+		} else {
+			return true, userid
 		}
 	}
 }
@@ -95,9 +116,19 @@ func getEmailFromUuid(uuid string) string {
 	return DoSelectOneString(sqlStatement, uuid)
 }
 
-func getStringFromUsersWithEmail(dataToRetrieve, email string) string {
-	sqlStatement := "SELECT " +dataToRetrieve + " FROM users WHERE email = $1"
-	return DoSelectOneString(sqlStatement, email)
+func insertNewRandomUser(dni, name, email, phone string) bool{
+	sqlStatement := "INSERT INTO Patients (dni, email, name, phone) " +
+		"VALUES ($1, $2, $3, $4)"
+	return InsertNewUserQuery(sqlStatement, dni, email, name, phone)
 }
 
+func insertAppointment( date, employee_dni, patient_dni string) bool{
 
+	/* VER LA BASE DE DATOS DE LAS CITAS */
+
+	sqlStatment := "INSERT INTO Appointments (date_time, dni_Employee, dni_Patients) " +
+		"VALUES ($1, $2, $3)"
+
+	return InsertAppointmentQuery(sqlStatment, date, employee_dni, patient_dni)
+
+}

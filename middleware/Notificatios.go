@@ -55,7 +55,7 @@ func (s *smtpServer) Address() string {
 func CreateVerificationEmail(uuid, name, email, path string, condition int) (bool, map[string]interface{}) {
 
 	url := "http://localhost:8081/" + path + "/" + uuid
-	if !sendEmail(name, email, url, condition) {
+	if !sendEmail(name, url, email, condition) {
 		lib.TerminalLogger.Error("Impossible to send the email")
 		lib.DocuLogger.Error("Impossible to send the email")
 		return false, map[string]interface{}{"state": "Imposible enviar el correo"}
@@ -88,7 +88,7 @@ func sendEmail(name, url, email string, condition int) bool {
 	r := NewRequest(emailToSend, "BIENVENIDO", "")
 
 	switch condition{
-	case 0: //Case where the email is sent for a the SignUp of a new employee
+	case 0: //Case where the email is sent for the SignUp of a new employee
 		err := r.ParseTemplate("C:/Users/Daniel/go/src/TFG/API-REST/middleware/Employee_signUp_template.html", templateData)
 		if err != nil {
 			lib.TerminalLogger.Error("Problems parsing the tempalte: " + err.Error())
@@ -131,6 +131,63 @@ func sendEmail(name, url, email string, condition int) bool {
 	return true
 }
 
+func sendReminder(header, data, day, hour, url, email string, month int) bool {
+	// Sender data.
+	from := secret.Email
+	password := secret.Password
+	// smtp server configuration.
+	smtpServer := smtpServer{host: "smtp.gmail.com", port: "587"}
+	// Authentication.
+	auth := smtp.PlainAuth("", from, password, smtpServer.host)
+
+	templateData := struct {
+		Header	string
+		Data	string
+		Day		string
+		Hour	string
+		URL 	string
+	}{
+		Header: header,
+		Data: data,
+		Day: day + " de " + months[month-1],
+		Hour: hour,
+		URL: url,
+	}
+
+	emailToSend := []string{email}
+
+	r := NewRequest(emailToSend, "BIENVENIDO", "")
+
+	err := r.ParseTemplate("C:/Users/Daniel/go/src/TFG/API-REST/middleware/Reminder_template.html", templateData)
+	if err != nil {
+		lib.TerminalLogger.Error("Problems parsing the tempalte: " + err.Error())
+		lib.DocuLogger.Error("Problems parsing the tempalte: " + err.Error())
+		return false
+	}
+
+	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
+	to := "To: "
+	for i := 0; i < len(emailToSend); i++{
+		if i == 0{
+			to += emailToSend[i]
+		} else{
+			to += ", " + emailToSend[i]
+		}
+	}
+	to += " \n"
+	subject := "Subject: " + r.subject + "!\n"
+	msg := []byte(to + subject + mime + "\n" + r.body)
+
+	// Sending email.
+	err = smtp.SendMail(smtpServer.Address(), auth, "pruebaapifisio@gmail.com", r.to, msg)
+	if err != nil {
+		lib.TerminalLogger.Error("Problems sending the email: " + err.Error())
+		lib.DocuLogger.Error("Problems sending the email: " + err.Error())
+		return false
+	}
+	return true
+}
+
 func (r *Request) ParseTemplate(templateFileName string, data interface{}) error {
 	t, err := template.ParseFiles(templateFileName)
 	if err != nil {
@@ -142,4 +199,12 @@ func (r *Request) ParseTemplate(templateFileName string, data interface{}) error
 	}
 	r.body = buf.String()
 	return nil
+}
+
+func sendReminderEmailToEmployees() {
+	//coger las citas del dia de hoy
+	//clasificar por dni de empleados
+	//coger los email de los empleados y referenciar las citas a ese email
+	//enviar a cada empleado un email con sus citas
+
 }
