@@ -60,9 +60,20 @@ type ClinicalBackgroundData struct{
 type Appointment struct{
 	New_user		bool	`json:"New_user"`		//if false phone and name must to be empty
 	Patient_phone	string	`json:"Patient_phone"`
-	Patient_name	string	`json:"Patient_name""`
+	Patient_name	string	`json:"Patient_name"`
 	Patient_email 	string 	`json:"Patient_email"`
 	Employee_email	string	`json:"Employee_email"`	//This never going to be empty because when the user log in we send back the email so here we recieve the email from the store
+	Hour			int		`json:"Hour"`
+	Minute			int		`json:"Minute"`
+	Day				int 	`json:"Day"`
+	Month			int		`json:"Month"`
+	Year			int		`json:"Year"`
+}
+
+type Exercise struct{
+	Exercise_name	string	`json:"Exercise_name"`
+	Description		string 	`json:"Description"`
+	Patient_email 	string 	`json:"Patient_email"`
 	Hour			int		`json:"Hour"`
 	Minute			int		`json:"Minute"`
 	Day				int 	`json:"Day"`

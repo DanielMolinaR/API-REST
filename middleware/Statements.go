@@ -68,7 +68,7 @@ func doPatientUpdateAndInsert(patient structures.Patient) (bool, string) {
 	if ok, userid := createKeycloakUser(patient.User.DNI, patient.User.Password, patient.User.Email, "PATIENT_ROLE"); !ok{
 		return false, ""
 	} else{
-		sqlStatement := "UPDATE Patients SET bithdate = $1, dni = $2, email = $3, name = $4, surname = $5, phone = $6 " +
+		sqlStatement := "UPDATE Patients SET birthdate = $1, dni = $2, email = $3, name = $4, surname = $5, phone = $6 " +
 			"WHERE email = $7"
 		if !UpdatePatientQuery(sqlStatement, patient){
 			DeleteKeycloakUser(userid)
@@ -131,4 +131,9 @@ func insertAppointment( date, employee_dni, patient_dni string) bool{
 
 	return InsertAppointmentQuery(sqlStatment, date, employee_dni, patient_dni)
 
+}
+
+func checkIfAvailable(condition, dni, date string) bool{
+	sqlStatement := "SELECT EXTRACT('epoch' from date_time) FROM appointments WHERE dni_"+condition+" = $1 and date_time = $2"
+	return CheckIfIsAvailable(sqlStatement, dni, date)
 }

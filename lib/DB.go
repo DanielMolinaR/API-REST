@@ -55,8 +55,8 @@ func SelectQuery(sqlStatement, data string) (bool) {
 			return true
 		}
 	}
-	TerminalLogger.Warn("The DNI has been found in the DDBB")
-	DocuLogger.Warn("The DNI has been found in the DDBB")
+	TerminalLogger.Warn("The data has been found in the DDBB")
+	DocuLogger.Warn("The data has been found in the DDBB")
 	return true
 }
 
@@ -216,6 +216,8 @@ func InsertNewUserQuery(sqlStatement, dni, email, name, phone string) bool {
 		DocuLogger.Error("Something went wrong inserting the new random user", err)
 		return false
 	}
+	TerminalLogger.Error("New random user successfully inserted", err)
+	DocuLogger.Error("New random user successfully inserted", err)
 	return true
 }
 
@@ -224,6 +226,18 @@ func InsertAppointmentQuery(sqlStatement, date, employee_dni, patient_dni string
 	if err != nil {
 		TerminalLogger.Error("Something went wrong inserting the appointment", err)
 		DocuLogger.Error("Something went wrong inserting the appointment", err)
+		return false
+	}
+	return true
+}
+
+func CheckIfIsAvailable(sqlStatement, dni, date string) bool {
+	var dateRetrieved int64
+
+	rows := db.QueryRow(context.Background(), sqlStatement, dni, date).Scan(&dateRetrieved)
+	if rows == nil {
+		TerminalLogger.Warn("An appointment as the same hour has been found in the DDBB")
+		DocuLogger.Warn("An appointment as the same hour has been found in the DDBB")
 		return false
 	}
 	return true

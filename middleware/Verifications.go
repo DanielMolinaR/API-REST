@@ -275,6 +275,21 @@ func verifyAppointmentData(appointmentData structures.Appointment, newUser bool)
 	return true, nil
 }
 
+func verifyExerciseData(exerciseData structures.Exercise) (bool, map[string]interface{}){
+	if !verifyEmail(exerciseData.Patient_email){
+		return false, map[string]interface{}{"state": "Correo no válido"}
+	} else if checkIfExists("patients", "email", "email", exerciseData.Patient_email) {
+		return false, map[string]interface{}{"state": "Ya existe este correo"}
+	}
+
+	//verify date
+	if !verifyTime(exerciseData.Year, exerciseData.Month, exerciseData.Day, exerciseData.Hour, exerciseData.Minute){
+		return false, map[string]interface{}{"state": "Fecha no válida"}
+	}
+
+	return true, nil
+}
+
 func verifyTime(year, month, day, hour, minute int) bool{
 	date := time.Date(year, time.Month(month), day, hour, minute, 0, 0, time.UTC)
 
@@ -284,4 +299,24 @@ func verifyTime(year, month, day, hour, minute int) bool{
 	return true
 }
 
+func verifyAppointmentAvailableness(patient_dni, employee_dni, date string) (bool, map[string]interface{}) {
+	if !verifyEmployeeAvaliableness(employee_dni, date){
+		return false, map[string]interface{}{"state": "El empleado ya tiene una cita en esta fecha"}
+		lib.TerminalLogger.Error("The employee has a appointments at the same date")
+		lib.DocuLogger.Error("The employee has a appointments at the same date")
+	} else if !verifyPatientAvaliableness(patient_dni, date){
+		return false, map[string]interface{}{"state": "El paciente ya tiene una cita en esta fecha"}
+		lib.TerminalLogger.Error("The patient has a appointments at the same date")
+		lib.DocuLogger.Error("The patient has a appointments at the same date")
+	}
+	return true, nil
+}
+
+func verifyEmployeeAvaliableness(employee_dni, date string) bool{
+	return checkIfAvailable("employee", employee_dni, date)
+}
+
+func verifyPatientAvaliableness(patient_dni, date string) bool{
+	return checkIfAvailable("patients", patient_dni, date)
+}
 

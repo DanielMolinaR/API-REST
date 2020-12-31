@@ -210,7 +210,12 @@ func createExercises(w http.ResponseWriter, r *http.Request) {
 	if ok, response := VerifyTokenIsFromEmployeeOrAdmin(AuthHeader); !ok{
 		setAnswer(response, w, http.StatusPreconditionFailed)
 	} else{
-
+		ok, response := ExerciseMiddleware(reqBody)
+		if !ok {
+			setAnswer(response, w, http.StatusNotAcceptable)
+		} else {
+			setAnswer(response, w, http.StatusCreated)
+		}
 	}
 
 

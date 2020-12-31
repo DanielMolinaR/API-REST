@@ -282,26 +282,37 @@ func AppointmentMiddleware(reqBody []byte) (bool, map[string]interface{}){
 
 			//generate a random id for the patient as dni
 			patient_id := "Usuario nuevo: " + generateUUID()
+
+			_, employee_dni := getStringFromField("employee", "dni", "email", appointmentData.Employee_email)
+			date := time.Date(appointmentData.Year, time.Month(appointmentData.Month), appointmentData.Day, appointmentData.Hour, appointmentData.Minute,0, 0, time.UTC)
+			dateAsString := date.String()[:20]
 			if !insertNewRandomUser(patient_id, appointmentData.Patient_name, appointmentData.Patient_email, appointmentData.Patient_phone){
 				return false, map[string]interface{}{"state": "Problemas añadiendo el usuario nuevo"}
+			} else 	if ok, response := verifyAppointmentAvailableness(patient_id, employee_dni, dateAsString); !ok{
+				return false, response
 			} else {
-				return saveAppointmentAndSendNotification(patient_id, appointmentData)
+				return saveAppointmentAndSendNotification(patient_id, appointmentData, employee_dni, dateAsString)
 			}
 		}
 	} else{
 		if ok, response := verifyAppointmentData(appointmentData, false); !ok{
 			return ok, response
 		} else{
+			_, employee_dni := getStringFromField("employee", "dni", "email", appointmentData.Employee_email)
+			date := time.Date(appointmentData.Year, time.Month(appointmentData.Month), appointmentData.Day, appointmentData.Hour, appointmentData.Minute,0, 0, time.UTC)
+			dateAsString := date.String()[:20]
 			_, patient_dni := getStringFromField("patients", "dni", "email", appointmentData.Patient_email)
-			return saveAppointmentAndSendNotification(patient_dni, appointmentData)
+			if ok, response := verifyAppointmentAvailableness(patient_dni, employee_dni, dateAsString); !ok{
+				return false, response
+			} else {
+				return saveAppointmentAndSendNotification(patient_dni, appointmentData, employee_dni, dateAsString)
+			}
 		}
 	}
 }
 
-func saveAppointmentAndSendNotification(patient_id string, appointmentData Appointment) (bool, map[string]interface{}) {
-	date := time.Date(appointmentData.Year, time.Month(appointmentData.Month), appointmentData.Day, appointmentData.Hour, appointmentData.Minute,0, 0, time.UTC)
-	_, employee_dni := getStringFromField("employee", "dni", "email", appointmentData.Employee_email)
-	if !insertAppointment(date.String()[:20], employee_dni, patient_id){
+func saveAppointmentAndSendNotification(patient_id string, appointmentData Appointment, employee_dni, date string) (bool, map[string]interface{}) {
+	if !insertAppointment(date, employee_dni, patient_id){
 		return false, map[string]interface{}{"state": "No se ha podido crear la cita"}
 	} else {
 		minute := strconv.Itoa(appointmentData.Minute)
@@ -309,13 +320,34 @@ func saveAppointmentAndSendNotification(patient_id string, appointmentData Appoi
 			minute = minute + "0"
 		}
 		_, employee_name := getStringFromField("employee", "name", "dni", employee_dni)
-		sendReminder("Cita fisioterapia", "Tienes una cita pendiente con " + employee_name,
+		ok := sendReminder("Cita fisioterapia", "Tienes una cita pendiente con " + employee_name,
 			strconv.Itoa(appointmentData.Day), strconv.Itoa(appointmentData.Hour) + ":" + minute,
 			"http://localhost:8081/calendar", appointmentData.Patient_email, appointmentData.Month)
+		if ok {
+			lib.TerminalLogger.Trace("The reminder has been sent")
+			lib.DocuLogger.Trace("The reminder has been sent")
+		} else {
+			lib.TerminalLogger.Error("The reminder has not been sent")
+			lib.DocuLogger.Error("The reminder has not been sent")
+		}
 		setReminder(appointmentData, true)
 		return true, map[string]interface{}{"state": "Cita creada"}
 	}
 
+}
+
+func ExerciseMiddleware(reqBody []byte) (bool, map[string]interface{}){
+	var exerciseData Exercise
+
+	err := json.Unmarshal(reqBody, &exerciseData)
+
+	if err != nil{
+		lib.TerminalLogger.Error("Impossible to retrieve the data from the JSON")
+		lib.DocuLogger.Error("Impossible to retrieve the data from the JSON")
+		return false, map[string]interface{}{"state": "Problemas con la lectura de los datos"}
+	} else if ok, response := verifyExerciseData(exerciseData); !ok{
+
+	}
 }
 
 func generateUUID() string {
