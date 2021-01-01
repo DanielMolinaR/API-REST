@@ -231,6 +231,16 @@ func InsertAppointmentQuery(sqlStatement, date, employee_dni, patient_dni string
 	return true
 }
 
+func InsertExerciseQuery(sqlStatement, date, patient_dni, name, description string) bool {
+	_, err := db.Exec(context.Background(), sqlStatement, date, patient_dni, name, description)
+	if err != nil {
+		TerminalLogger.Error("Something went wrong inserting the appointment", err)
+		DocuLogger.Error("Something went wrong inserting the appointment", err)
+		return false
+	}
+	return true
+}
+
 func CheckIfIsAvailable(sqlStatement, dni, date string) bool {
 	var dateRetrieved int64
 

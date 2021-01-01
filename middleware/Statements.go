@@ -123,17 +123,19 @@ func insertNewRandomUser(dni, name, email, phone string) bool{
 }
 
 func insertAppointment( date, employee_dni, patient_dni string) bool{
-
-	/* VER LA BASE DE DATOS DE LAS CITAS */
-
 	sqlStatment := "INSERT INTO Appointments (date_time, dni_Employee, dni_Patients) " +
 		"VALUES ($1, $2, $3)"
-
 	return InsertAppointmentQuery(sqlStatment, date, employee_dni, patient_dni)
-
 }
 
-func checkIfAvailable(condition, dni, date string) bool{
-	sqlStatement := "SELECT EXTRACT('epoch' from date_time) FROM appointments WHERE dni_"+condition+" = $1 and date_time = $2"
+func insertExercise( date, patient_dni, name, description string) bool{
+
+	sqlStatment := "INSERT INTO Exercises (exercise_date_time dni_Patients, name, description) " +
+		"VALUES ($1, $2, $3)"
+	return InsertExerciseQuery(sqlStatment, date, patient_dni, name, description)
+}
+
+func checkIfAvailable(condition, dni, date, table string) bool{
+	sqlStatement := "SELECT EXTRACT('epoch' from date_time) FROM " + table  + " WHERE dni_"+condition+" = $1 and date_time = $2"
 	return CheckIfIsAvailable(sqlStatement, dni, date)
 }

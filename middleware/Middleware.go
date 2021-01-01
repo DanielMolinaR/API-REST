@@ -311,13 +311,13 @@ func AppointmentMiddleware(reqBody []byte) (bool, map[string]interface{}){
 	}
 }
 
-func saveAppointmentAndSendNotification(patient_id string, appointmentData Appointment, employee_dni, date string) (bool, map[string]interface{}) {
+func saveAppointmentAndSendNotification(patient_id, employee_dni, date string, appointmentData Appointment,) (bool, map[string]interface{}) {
 	if !insertAppointment(date, employee_dni, patient_id){
 		return false, map[string]interface{}{"state": "No se ha podido crear la cita"}
 	} else {
 		minute := strconv.Itoa(appointmentData.Minute)
-		if (minute == "0"){
-			minute = minute + "0"
+		if (appointmentData.Minute >= 0 && appointmentData.Minute<10){
+			minute = "0" + minute
 		}
 		_, employee_name := getStringFromField("employee", "name", "dni", employee_dni)
 		ok := sendReminder("Cita fisioterapia", "Tienes una cita pendiente con " + employee_name,
@@ -330,10 +330,9 @@ func saveAppointmentAndSendNotification(patient_id string, appointmentData Appoi
 			lib.TerminalLogger.Error("The reminder has not been sent")
 			lib.DocuLogger.Error("The reminder has not been sent")
 		}
-		setReminder(appointmentData, true)
+		setAppointmentReminder(appointmentData)
 		return true, map[string]interface{}{"state": "Cita creada"}
 	}
-
 }
 
 func ExerciseMiddleware(reqBody []byte) (bool, map[string]interface{}){
@@ -346,7 +345,39 @@ func ExerciseMiddleware(reqBody []byte) (bool, map[string]interface{}){
 		lib.DocuLogger.Error("Impossible to retrieve the data from the JSON")
 		return false, map[string]interface{}{"state": "Problemas con la lectura de los datos"}
 	} else if ok, response := verifyExerciseData(exerciseData); !ok{
+		return ok, response
+	} else {
+		_, patient_dni := getStringFromField("patients", "dni", "email", exerciseData.Patient_email)
+		date := time.Date(exerciseData.Year, time.Month(exerciseData.Month), exerciseData.Day, exerciseData.Hour, exerciseData.Minute,0, 0, time.UTC)
+		dateAsString := date.String()[:20]
+		if !verifyPatientAvaliableness(patient_dni, dateAsString, "exercises"){
+			return false, map[string]interface{}{"state": "El apciente ya tiene un ejercicio en esta fecha"}
+		} else {
+			return saveExerciseAndSendNotification(patient_dni, dateAsString, exerciseData)
+		}
+	}
+}
 
+func saveExerciseAndSendNotification(patient_dni string, date string, exerciseData Exercise) (bool, map[string]interface{}) {
+	if !insertExercise(date, patient_dni, exerciseData.Exercise_name, exerciseData.Description){
+		return false, map[string]interface{}{"state": "No se ha podido crear la cita"}
+	} else {
+		minute := strconv.Itoa(exerciseData.Minute)
+		if (exerciseData.Minute >= 0 && exerciseData.Minute<10){
+			minute = "0" + minute
+		}
+		ok := sendReminder("Ejercicio: " + exerciseData.Exercise_name + " pendiente", exerciseData.Description,
+			strconv.Itoa(exerciseData.Day), strconv.Itoa(exerciseData.Hour) + ":" + minute,
+			"http://localhost:8081/calendar", exerciseData.Patient_email, exerciseData.Month)
+		if ok {
+			lib.TerminalLogger.Trace("The reminder has been sent")
+			lib.DocuLogger.Trace("The reminder has been sent")
+		} else {
+			lib.TerminalLogger.Error("The reminder has not been sent")
+			lib.DocuLogger.Error("The reminder has not been sent")
+		}
+		setExerciseReminder(exerciseData)
+		return true, map[string]interface{}{"state": "Cita creada"}
 	}
 }
 

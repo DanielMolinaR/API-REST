@@ -300,11 +300,11 @@ func verifyTime(year, month, day, hour, minute int) bool{
 }
 
 func verifyAppointmentAvailableness(patient_dni, employee_dni, date string) (bool, map[string]interface{}) {
-	if !verifyEmployeeAvaliableness(employee_dni, date){
+	if !verifyEmployeeAvaliableness(employee_dni, date, "appointments"){
 		return false, map[string]interface{}{"state": "El empleado ya tiene una cita en esta fecha"}
 		lib.TerminalLogger.Error("The employee has a appointments at the same date")
 		lib.DocuLogger.Error("The employee has a appointments at the same date")
-	} else if !verifyPatientAvaliableness(patient_dni, date){
+	} else if !verifyPatientAvaliableness(patient_dni, date, "appointments"){
 		return false, map[string]interface{}{"state": "El paciente ya tiene una cita en esta fecha"}
 		lib.TerminalLogger.Error("The patient has a appointments at the same date")
 		lib.DocuLogger.Error("The patient has a appointments at the same date")
@@ -312,11 +312,20 @@ func verifyAppointmentAvailableness(patient_dni, employee_dni, date string) (boo
 	return true, nil
 }
 
-func verifyEmployeeAvaliableness(employee_dni, date string) bool{
-	return checkIfAvailable("employee", employee_dni, date)
+func verifyExerciseAvailableness(patient_dni, date string) (bool, map[string]interface{}) {
+	if !verifyPatientAvaliableness(patient_dni, date, "exercises"){
+		return false, map[string]interface{}{"state": "El paciente ya tiene una cita en esta fecha"}
+		lib.TerminalLogger.Error("The patient has a appointments at the same date")
+		lib.DocuLogger.Error("The patient has a appointments at the same date")
+	}
+	return true, nil
 }
 
-func verifyPatientAvaliableness(patient_dni, date string) bool{
-	return checkIfAvailable("patients", patient_dni, date)
+func verifyEmployeeAvaliableness(employee_dni, date, table string) bool{
+	return checkIfAvailable("employee", employee_dni, date, table)
+}
+
+func verifyPatientAvaliableness(patient_dni, date, table string) bool{
+	return checkIfAvailable("patients", patient_dni, date, table)
 }
 

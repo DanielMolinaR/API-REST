@@ -16,10 +16,10 @@ func login (w http.ResponseWriter, r *http.Request) {
 	lib.DocuLogger.Trace("User trying to login from: ", r.Host)
 
 	//Read the authorization header
-	AuthHeader := r.Header.Get("Authorization")
+	authHeader := r.Header.Get("Authorization")
 
 	//Extract the Bearer from the data of the header
-	token := strings.Replace(AuthHeader, "Bearer ", "", -1)
+	token := strings.Replace(authHeader, "Bearer ", "", -1)
 
 	//Check if the token is valid
 	if VerifyToken(token) {
@@ -45,9 +45,9 @@ func login (w http.ResponseWriter, r *http.Request) {
 func generateAndSendUniqueUrlForSignUp (w http.ResponseWriter, r *http.Request) {
 
 	//Read the authorization header
-	AuthHeader := r.Header.Get("Authorization")
+	authHeader := r.Header.Get("Authorization")
 
-	if ok, response := VerifyTokenIsFromAdmin(AuthHeader); !ok {
+	if ok, response := VerifyTokenIsFromAdmin(authHeader); !ok {
 		lib.TerminalLogger.Warn("Someone who is not an Amdin is trying to generate an unique URL: ", r.Host)
 		lib.DocuLogger.Warn("Someone who is not an Amdin is trying to generate an unique URL: ", r.Host)
 		setAnswer(response, w, http.StatusPreconditionFailed)
@@ -71,11 +71,11 @@ func employeeSignUp(w http.ResponseWriter,r *http.Request){
 	lib.DocuLogger.Trace("Signing up an employee from: ", r.Host)
 
 	//Read the authorization header
-	AuthHeader := r.Header.Get("Authorization")
+	authHeader := r.Header.Get("Authorization")
 
 	//Extract the Bearer from the data of the header
 	//In this request we dont expect a token, we expect the slug from the URL for creating the user
-	SignUpUuid := strings.Replace(AuthHeader, "Bearer ", "", -1)
+	SignUpUuid := strings.Replace(authHeader, "Bearer ", "", -1)
 
 	//Verify the slug and get the expiration date
 	expTime := VerifyUuidAndGetExpTime(SignUpUuid)
@@ -182,9 +182,9 @@ func createAppointments(w http.ResponseWriter, r *http.Request){
 	lib.DocuLogger.Trace("Creating an appointment from: ", r.Host)
 
 	//Read the authorization header
-	AuthHeader := r.Header.Get("Authorization")
+	authHeader := r.Header.Get("Authorization")
 
-	if ok, response := VerifyTokenIsFromEmployeeOrAdmin(AuthHeader); !ok{
+	if ok, response := VerifyTokenIsFromEmployeeOrAdmin(authHeader); !ok{
 		setAnswer(response, w, http.StatusPreconditionFailed)
 	} else{
 		if ok, reqBody := readBody(r); !ok {
@@ -205,19 +205,42 @@ func createExercises(w http.ResponseWriter, r *http.Request) {
 	lib.DocuLogger.Trace("Creating an exercise from: ", r.Host)
 
 	//Read the authorization header
-	AuthHeader := r.Header.Get("Authorization")
+	authHeader := r.Header.Get("Authorization")
 
-	if ok, response := VerifyTokenIsFromEmployeeOrAdmin(AuthHeader); !ok{
+	if ok, response := VerifyTokenIsFromEmployeeOrAdmin(authHeader); !ok{
 		setAnswer(response, w, http.StatusPreconditionFailed)
 	} else{
-		ok, response := ExerciseMiddleware(reqBody)
-		if !ok {
-			setAnswer(response, w, http.StatusNotAcceptable)
+		if ok, reqBody := readBody(r); !ok {
+			setAnswer(map[string]interface{}{"state": "Imposible leer la información"} ,w, http.StatusInternalServerError)
 		} else {
-			setAnswer(response, w, http.StatusCreated)
+			ok, response := ExerciseMiddleware(reqBody)
+			if !ok {
+				setAnswer(response, w, http.StatusNotAcceptable)
+			} else {
+				setAnswer(response, w, http.StatusCreated)
+			}
 		}
 	}
+}
 
+func getAppointment(w http.ResponseWriter, r *http.Request){
+	lib.TerminalLogger.Trace("Getting appointments from: ", r.Host)
+	lib.DocuLogger.Trace("Getting appointments from: ", r.Host)
+
+	//Read the authorization header
+	authHeader := r.Header.Get("Authorization")
+
+	//Extract the Bearer from the data of the header
+	token := strings.Replace(authHeader, "Bearer ", "", -1)
+
+	//Check if the token is valid
+	if !VerifyToken(token) {
+		lib.TerminalLogger.Trace("The user is trying to retrieve appointments with an invalid token")
+		lib.DocuLogger.Trace("The user is trying to retrieve appointments with an invalid token")
+		setAnswer(map[string]interface{}{"state": "Sesión iniciada gracias al token"}, w, http.StatusAccepted)
+	} else {
+
+	}
 
 }
 
@@ -253,8 +276,8 @@ func main() {
 	router.HandleFunc("/verify-email", verifyEmail).Methods(http.MethodPatch, http.MethodOptions)
 	router.HandleFunc("/create-appointments", createAppointments).Methods(http.MethodPost, http.MethodOptions)
 	router.HandleFunc("/create-exercises", createExercises).Methods(http.MethodPost, http.MethodOptions)
-	/*router.HandleFunc("/get-appointments", getAppointments).Methods(http.MethodGet, http.MethodOptions)
-	router.HandleFunc("/getAll-appointments", getAllAppointments).Methods(http.MethodGet, http.MethodOptions)
+	router.HandleFunc("/get-appointment", getAppointment).Methods(http.MethodGet, http.MethodOptions)
+	/*router.HandleFunc("/getAll-appointments", getAllAppointments).Methods(http.MethodGet, http.MethodOptions)
 	router.HandleFunc("/get-exercises", getAppointments).Methods(http.MethodGet, http.MethodOptions)
 	router.HandleFunc("/update-appointment", updateAppointments).Methods(http.MethodPut, http.MethodOptions)
 	router.HandleFunc("/update-exercise", updateExercises).Methods(http.MethodPut, http.MethodOptions)
