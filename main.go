@@ -239,7 +239,11 @@ func getAppointment(w http.ResponseWriter, r *http.Request){
 		lib.DocuLogger.Trace("The user is trying to retrieve appointments with an invalid token")
 		setAnswer(map[string]interface{}{"state": "Sesión iniciada gracias al token"}, w, http.StatusAccepted)
 	} else {
-
+		if ok, response := GetAppointmentsDataFromDni(token); !ok {
+			setAnswer(response, w, http.StatusPreconditionFailed)
+		} else {
+			setAnswer(response, w, http.StatusAccepted)
+		}
 	}
 
 }
@@ -277,12 +281,12 @@ func main() {
 	router.HandleFunc("/create-appointments", createAppointments).Methods(http.MethodPost, http.MethodOptions)
 	router.HandleFunc("/create-exercises", createExercises).Methods(http.MethodPost, http.MethodOptions)
 	router.HandleFunc("/get-appointment", getAppointment).Methods(http.MethodGet, http.MethodOptions)
-	/*router.HandleFunc("/getAll-appointments", getAllAppointments).Methods(http.MethodGet, http.MethodOptions)
+	router.HandleFunc("/getAll-appointments", getAllAppointments).Methods(http.MethodGet, http.MethodOptions)
 	router.HandleFunc("/get-exercises", getAppointments).Methods(http.MethodGet, http.MethodOptions)
-	router.HandleFunc("/update-appointment", updateAppointments).Methods(http.MethodPut, http.MethodOptions)
-	router.HandleFunc("/update-exercise", updateExercises).Methods(http.MethodPut, http.MethodOptions)
+	/*router.HandleFunc("/update-appointment", updateAppointments).Methods(http.MethodPut, http.MethodOptions)
+	router.HandleFunc("/update-exercise", updateExercises).Methods(http.MethodPut, http.MethodOptions)*/
 	router.HandleFunc("/delete-appointment", deleteAppointments).Methods(http.MethodDelete, http.MethodOptions)
-	router.HandleFunc("/delete-exercise", deleteExercises).Methods(http.MethodDelete, http.MethodOptions)*/
+	router.HandleFunc("/delete-exercise", deleteExercises).Methods(http.MethodDelete, http.MethodOptions)
 
 
 

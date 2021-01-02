@@ -80,3 +80,9 @@ type Exercise struct{
 	Month			int		`json:"Month"`
 	Year			int		`json:"Year"`
 }
+
+type AppointmentResponse struct{
+	Date 			string
+	Employee_name 	string
+	Patient_name	string
+}

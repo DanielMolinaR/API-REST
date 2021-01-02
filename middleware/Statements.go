@@ -3,6 +3,9 @@ package middleware
 import (
 	. "TFG/API-REST/lib"
 	"TFG/API-REST/structures"
+	"fmt"
+	"github.com/jackc/pgx/v4"
+	"strconv"
 	"time"
 )
 
@@ -138,4 +141,38 @@ func insertExercise( date, patient_dni, name, description string) bool{
 func checkIfAvailable(condition, dni, date, table string) bool{
 	sqlStatement := "SELECT EXTRACT('epoch' from date_time) FROM " + table  + " WHERE dni_"+condition+" = $1 and date_time = $2"
 	return CheckIfIsAvailable(sqlStatement, dni, date)
+}
+
+func getAppointmentsFromDB(dni string) (bool, pgx.Rows) {
+	sqlStatement := "SELECT EXTRACT('epoch' from date_time), employee.name AS employee_name, patients.name AS patient_name FROM " +
+		"appointments, employee, patients WHERE (appointments.dni_employee = $1 or appointments.dni_patients = $1) " +
+		"AND (appointments.dni_employee = employee.dni) AND (appointments.dni_patients =  patients.dni)"
+	return GetAppointmentsAndNamesFromDniQuery(sqlStatement, dni)
+}
+
+func getAppointmentsDataFromRows(rows pgx.Rows) map[string]interface{}{
+	appointments := make(map[string]interface{})
+	var appointmentDataResponse structures.AppointmentResponse
+	rowsCount := 0
+	for rows.Next() {
+
+		var date int64
+		err := rows.Scan(&date, &appointmentDataResponse.Employee_name, &appointmentDataResponse.Patient_name)
+		if err != nil {
+			fmt.Println(err)
+			return appointments
+		}
+		dateAsSomething := time.Unix(date, 0)
+		finalDate := time.Date(dateAsSomething.Year(), dateAsSomething.Month(), dateAsSomething.Day(), dateAsSomething.Hour()-1, dateAsSomething.Minute(),
+			dateAsSomething.Second(), 0, time.UTC)
+		appointmentDataResponse.Date = finalDate.String()[:20]
+		rowsCount += 1
+		appointments["Cita " + strconv.Itoa(rowsCount)] = appointmentDataResponse
+	}
+
+	if rows.Err() != nil {
+		fmt.Println(rows.Err())
+		return appointments
+	}
+	return appointments
 }

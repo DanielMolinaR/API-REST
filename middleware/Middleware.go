@@ -381,6 +381,15 @@ func saveExerciseAndSendNotification(patient_dni string, date string, exerciseDa
 	}
 }
 
+func GetAppointmentsDataFromDni(token string) (bool, map[string]interface{}){
+	dni := getUserDniFromToken(token)
+	if ok, rows := getAppointmentsFromDB(dni); !ok{
+		return ok, map[string]interface{}{"state": "Ha habido algún problema encontrando las citas"}
+	} else {
+		return true, getAppointmentsDataFromRows(rows)
+	}
+}
+
 func generateUUID() string {
 	uuidWithHyphen := uuid.New()
 	customUuid := strings.Replace(uuidWithHyphen.String(), "-", "", -1)

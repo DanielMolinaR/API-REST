@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"io/ioutil"
 	"os"
@@ -253,3 +254,12 @@ func CheckIfIsAvailable(sqlStatement, dni, date string) bool {
 	return true
 }
 
+func GetAppointmentsAndNamesFromDniQuery(sqlStatement, dni string) (bool, pgx.Rows) {
+	rows, err := db.Query(context.Background(), sqlStatement, dni)
+	if err != nil {
+		fmt.Println(err)
+		return false, nil
+	}
+	return true, rows
+
+}
