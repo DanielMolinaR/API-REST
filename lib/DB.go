@@ -261,5 +261,13 @@ func GetAppointmentsAndNamesFromDniQuery(sqlStatement, dni string) (bool, pgx.Ro
 		return false, nil
 	}
 	return true, rows
+}
 
+func GetAllAppointmentsAndNamesFromQuery(sqlStatement string) (bool, pgx.Rows) {
+	rows, err := db.Query(context.Background(), sqlStatement)
+	if err != nil {
+		fmt.Println(err)
+		return false, nil
+	}
+	return true, rows
 }

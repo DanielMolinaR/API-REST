@@ -26,9 +26,9 @@ func getTheRole(token string) int {
 
 func getUserDniFromToken(token string) (string){
 	claims_token := decodeToken(token)
-	data := (*claims_token)["sub"]
-	dni := data.([]interface{})
-	return dni[0]
+	username := (*claims_token)["preferred_username"]
+	usernameAsString := fmt.Sprintf("%v", username)
+	return usernameAsString
 }
 
 func getEmail(token string) string {

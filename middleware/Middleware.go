@@ -16,6 +16,8 @@ func UsersLogin(reqBody []byte) (bool, map[string]interface{}) {
 	//The data from reqBody is filled in the newUser
 	err := json.Unmarshal(reqBody, &userToLogIn)
 
+	userToLogIn.DNI = strings.ToLower(userToLogIn.DNI)
+
 	if err != nil{
 		lib.TerminalLogger.Error("Impossible to retrieve the data from the JSON")
 		lib.DocuLogger.Error("Impossible to retrieve the data from the JSON")
@@ -39,6 +41,8 @@ func VerifyDataAndSendUniqueEmail(reqBody []byte) (bool, map[string]interface{})
 
 	//The data from reqBody is filled in the newUser
 	err := json.Unmarshal(reqBody, &userData)
+
+	userData.DNI = strings.ToLower(userData.DNI)
 
 	if err != nil{
 		lib.TerminalLogger.Error("Impossible to retrieve the data from the JSON")
@@ -74,6 +78,8 @@ func EmployeeSignUpVerification(reqBody []byte) (bool, map[string]interface{}){
 
 	//The data from reqBody is filled in the newUser
 	err := json.Unmarshal(reqBody, &newEmployee)
+
+	newEmployee.User.DNI = strings.ToLower(newEmployee.User.DNI)
 
 	newEmployee.Admin = false
 	newEmployee.Active = true
@@ -121,6 +127,8 @@ func PatientSignUpVerification(reqBody []byte) (bool, map[string]interface{}){
 
 	//The data from reqBody is filled in the newUser
 	err := json.Unmarshal(reqBody, &newPatient)
+
+	newPatient.User.DNI = strings.ToLower(newPatient.User.DNI)
 
 	if err != nil{
 		lib.TerminalLogger.Error("Impossible to retrieve the data from the JSON")
@@ -291,7 +299,7 @@ func AppointmentMiddleware(reqBody []byte) (bool, map[string]interface{}){
 			} else 	if ok, response := verifyAppointmentAvailableness(patient_id, employee_dni, dateAsString); !ok{
 				return false, response
 			} else {
-				return saveAppointmentAndSendNotification(patient_id, appointmentData, employee_dni, dateAsString)
+				return saveAppointmentAndSendNotification(patient_id, employee_dni, dateAsString, appointmentData)
 			}
 		}
 	} else{
@@ -305,7 +313,7 @@ func AppointmentMiddleware(reqBody []byte) (bool, map[string]interface{}){
 			if ok, response := verifyAppointmentAvailableness(patient_dni, employee_dni, dateAsString); !ok{
 				return false, response
 			} else {
-				return saveAppointmentAndSendNotification(patient_dni, appointmentData, employee_dni, dateAsString)
+				return saveAppointmentAndSendNotification(patient_dni, employee_dni, dateAsString, appointmentData)
 			}
 		}
 	}
@@ -360,13 +368,13 @@ func ExerciseMiddleware(reqBody []byte) (bool, map[string]interface{}){
 
 func saveExerciseAndSendNotification(patient_dni string, date string, exerciseData Exercise) (bool, map[string]interface{}) {
 	if !insertExercise(date, patient_dni, exerciseData.Exercise_name, exerciseData.Description){
-		return false, map[string]interface{}{"state": "No se ha podido crear la cita"}
+		return false, map[string]interface{}{"state": "No se ha podido crear el ejercicio"}
 	} else {
 		minute := strconv.Itoa(exerciseData.Minute)
 		if (exerciseData.Minute >= 0 && exerciseData.Minute<10){
 			minute = "0" + minute
 		}
-		ok := sendReminder("Ejercicio: " + exerciseData.Exercise_name + " pendiente", exerciseData.Description,
+		ok := sendReminder("Ejercicio pendiente: " + exerciseData.Exercise_name, exerciseData.Description,
 			strconv.Itoa(exerciseData.Day), strconv.Itoa(exerciseData.Hour) + ":" + minute,
 			"http://localhost:8081/calendar", exerciseData.Patient_email, exerciseData.Month)
 		if ok {
@@ -377,7 +385,7 @@ func saveExerciseAndSendNotification(patient_dni string, date string, exerciseDa
 			lib.DocuLogger.Error("The reminder has not been sent")
 		}
 		setExerciseReminder(exerciseData)
-		return true, map[string]interface{}{"state": "Cita creada"}
+		return true, map[string]interface{}{"state": "Ejercicio creado"}
 	}
 }
 
@@ -386,7 +394,24 @@ func GetAppointmentsDataFromDni(token string) (bool, map[string]interface{}){
 	if ok, rows := getAppointmentsFromDB(dni); !ok{
 		return ok, map[string]interface{}{"state": "Ha habido algún problema encontrando las citas"}
 	} else {
-		return true, getAppointmentsDataFromRows(rows)
+		return true, map[string]interface{}{"Citas": getAppointmentsDataFromRows(rows)}
+	}
+}
+
+func GetAllAppointmentsDataFromDni() (bool, map[string]interface{}){
+	if ok, rows := getAllAppointmentsFromDB(); !ok{
+		return ok, map[string]interface{}{"state": "Ha habido algún problema encontrando las citas"}
+	} else {
+		return true, map[string]interface{}{"Citas": getAppointmentsDataFromRows(rows)}
+	}
+}
+
+func GetExercisesDataFromDni(token string) (bool, map[string]interface{}){
+	dni := getUserDniFromToken(token)
+	if ok, rows := getExercisesFromDB(dni); !ok{
+		return ok, map[string]interface{}{"state": "Ha habido algún problema encontrando las citas"}
+	} else {
+		return true, map[string]interface{}{"Ejercicios": getExercisesDataFromRows(rows)}
 	}
 }
 

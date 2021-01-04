@@ -86,3 +86,9 @@ type AppointmentResponse struct{
 	Employee_name 	string
 	Patient_name	string
 }
+
+type ExercisesResponse struct{
+	Date 			string
+	Description 	string
+	Exercise_name	string
+}

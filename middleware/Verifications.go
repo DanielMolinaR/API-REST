@@ -10,7 +10,7 @@ import (
 	"unicode"
 )
 
-var letters = []string{"T", "R", "W", "A", "G", "M", "Y", "F", "P", "D", "X", "B", "N",	"J", "Z", "S", "Q",	"V", "H", "L", "C", "K", "E"}
+var letters = []string{"t", "r", "w", "a", "g", "m", "y", "f", "p", "d", "x", "b", "n",	"j", "z", "s", "q",	"v", "h", "l", "c", "k", "e"}
 
 func userDataVerifications(condition, dni, phone, email, password string) (bool, map[string]interface{}){
 
@@ -105,7 +105,7 @@ func verifyLastCharIsALetter(dni string) bool{
 	//Verified if the last char is a Letter
 	// parsing it to and int and using ASCII
 	asciiValue := int(c[0])
-	if asciiValue < 65 || asciiValue > 90 {
+	if asciiValue < 97 || asciiValue > 122 {
 		return false
 	} else {
 		return true
@@ -278,8 +278,8 @@ func verifyAppointmentData(appointmentData structures.Appointment, newUser bool)
 func verifyExerciseData(exerciseData structures.Exercise) (bool, map[string]interface{}){
 	if !verifyEmail(exerciseData.Patient_email){
 		return false, map[string]interface{}{"state": "Correo no válido"}
-	} else if checkIfExists("patients", "email", "email", exerciseData.Patient_email) {
-		return false, map[string]interface{}{"state": "Ya existe este correo"}
+	} else if !checkIfExists("patients", "email", "email", exerciseData.Patient_email) {
+		return false, map[string]interface{}{"state": "Este correo no existe"}
 	}
 
 	//verify date

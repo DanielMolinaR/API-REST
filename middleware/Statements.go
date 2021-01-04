@@ -132,14 +132,13 @@ func insertAppointment( date, employee_dni, patient_dni string) bool{
 }
 
 func insertExercise( date, patient_dni, name, description string) bool{
-
-	sqlStatment := "INSERT INTO Exercises (exercise_date_time dni_Patients, name, description) " +
-		"VALUES ($1, $2, $3)"
+	sqlStatment := "INSERT INTO Exercise (exercise_date_time, dni_Patients, name, description) " +
+		"VALUES ($1, $2, $3, $4)"
 	return InsertExerciseQuery(sqlStatment, date, patient_dni, name, description)
 }
 
 func checkIfAvailable(condition, dni, date, table string) bool{
-	sqlStatement := "SELECT EXTRACT('epoch' from date_time) FROM " + table  + " WHERE dni_"+condition+" = $1 and date_time = $2"
+	sqlStatement := "SELECT EXTRACT('epoch' from date_time) FROM " + table  + " WHERE dni_" + condition + " = $1 and date_time = $2"
 	return CheckIfIsAvailable(sqlStatement, dni, date)
 }
 
@@ -150,8 +149,20 @@ func getAppointmentsFromDB(dni string) (bool, pgx.Rows) {
 	return GetAppointmentsAndNamesFromDniQuery(sqlStatement, dni)
 }
 
-func getAppointmentsDataFromRows(rows pgx.Rows) map[string]interface{}{
-	appointments := make(map[string]interface{})
+func getAllAppointmentsFromDB() (bool, pgx.Rows) {
+	sqlStatement := "SELECT EXTRACT('epoch' from date_time), employee.name AS employee_name, patients.name AS patient_name FROM " +
+		"appointments, employee, patients WHERE (appointments.dni_employee = employee.dni) AND (appointments.dni_patients =  patients.dni)"
+	return GetAllAppointmentsAndNamesFromQuery(sqlStatement)
+}
+
+func getExercisesFromDB(dni string) (bool, pgx.Rows) {
+	sqlStatement := "SELECT EXTRACT('epoch' from exercise_date_time), description, name FROM Exercise WHERE dni_patients = $1"
+	return GetAppointmentsAndNamesFromDniQuery(sqlStatement, dni)
+}
+
+func getAppointmentsDataFromRows(rows pgx.Rows) map[string]map[string]interface{} {
+	appointments := make(map[string]map[string]interface{})
+
 	var appointmentDataResponse structures.AppointmentResponse
 	rowsCount := 0
 	for rows.Next() {
@@ -167,7 +178,9 @@ func getAppointmentsDataFromRows(rows pgx.Rows) map[string]interface{}{
 			dateAsSomething.Second(), 0, time.UTC)
 		appointmentDataResponse.Date = finalDate.String()[:20]
 		rowsCount += 1
-		appointments["Cita " + strconv.Itoa(rowsCount)] = appointmentDataResponse
+		appointments["Cita " + strconv.Itoa(rowsCount)] = map[string]interface{}{"date": appointmentDataResponse.Date, "Patient_name": appointmentDataResponse.Patient_name,
+			"Employee_name": appointmentDataResponse.Employee_name}
+
 	}
 
 	if rows.Err() != nil {
@@ -175,4 +188,34 @@ func getAppointmentsDataFromRows(rows pgx.Rows) map[string]interface{}{
 		return appointments
 	}
 	return appointments
+}
+
+func getExercisesDataFromRows(rows pgx.Rows) map[string]map[string]interface{} {
+	exercises := make(map[string]map[string]interface{})
+
+	var exerciseDataResponse structures.ExercisesResponse
+	rowsCount := 0
+	for rows.Next() {
+
+		var date int64
+		err := rows.Scan(&date, &exerciseDataResponse.Description, &exerciseDataResponse.Exercise_name)
+		if err != nil {
+			fmt.Println(err)
+			return exercises
+		}
+		dateAsSomething := time.Unix(date, 0)
+		finalDate := time.Date(dateAsSomething.Year(), dateAsSomething.Month(), dateAsSomething.Day(), dateAsSomething.Hour()-1, dateAsSomething.Minute(),
+			dateAsSomething.Second(), 0, time.UTC)
+		exerciseDataResponse.Date = finalDate.String()[:20]
+		rowsCount += 1
+		exercises["Ejercicio " + strconv.Itoa(rowsCount)] = map[string]interface{}{"date": exerciseDataResponse.Date, "Description": exerciseDataResponse.Description,
+			"Name": exerciseDataResponse.Exercise_name}
+
+	}
+
+	if rows.Err() != nil {
+		fmt.Println(rows.Err())
+		return exercises
+	}
+	return exercises
 }

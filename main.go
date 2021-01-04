@@ -237,7 +237,7 @@ func getAppointment(w http.ResponseWriter, r *http.Request){
 	if !VerifyToken(token) {
 		lib.TerminalLogger.Trace("The user is trying to retrieve appointments with an invalid token")
 		lib.DocuLogger.Trace("The user is trying to retrieve appointments with an invalid token")
-		setAnswer(map[string]interface{}{"state": "Sesión iniciada gracias al token"}, w, http.StatusAccepted)
+		setAnswer(map[string]interface{}{"state": "Token no valido"}, w, http.StatusNotAcceptable)
 	} else {
 		if ok, response := GetAppointmentsDataFromDni(token); !ok {
 			setAnswer(response, w, http.StatusPreconditionFailed)
@@ -245,7 +245,51 @@ func getAppointment(w http.ResponseWriter, r *http.Request){
 			setAnswer(response, w, http.StatusAccepted)
 		}
 	}
+}
 
+func getAllAppointments(w http.ResponseWriter, r *http.Request){
+	lib.TerminalLogger.Trace("Getting all the appointments from: ", r.Host)
+	lib.DocuLogger.Trace("Getting all the appointments from: ", r.Host)
+
+	//Read the authorization header
+	authHeader := r.Header.Get("Authorization")
+
+	//Check if the token is valid
+	if ok, response := VerifyTokenIsFromAdmin(authHeader); !ok {
+		lib.TerminalLogger.Trace("The user is trying to retrieve appointments with an invalid token")
+		lib.DocuLogger.Trace("The user is trying to retrieve appointments with an invalid token")
+		setAnswer(response, w, http.StatusNotAcceptable)
+	} else {
+		if ok, response := GetAllAppointmentsDataFromDni(); !ok {
+			setAnswer(response, w, http.StatusPreconditionFailed)
+		} else {
+			setAnswer(response, w, http.StatusAccepted)
+		}
+	}
+}
+
+func getExercises(w http.ResponseWriter, r *http.Request){
+	lib.TerminalLogger.Trace("Getting exercises from: ", r.Host)
+	lib.DocuLogger.Trace("Getting exercises from: ", r.Host)
+
+	//Read the authorization header
+	authHeader := r.Header.Get("Authorization")
+
+	//Extract the Bearer from the data of the header
+	token := strings.Replace(authHeader, "Bearer ", "", -1)
+
+	//Check if the token is valid
+	if !VerifyToken(token) {
+		lib.TerminalLogger.Trace("The user is trying to retrieve exercises with an invalid token")
+		lib.DocuLogger.Trace("The user is trying to retrieve exercises with an invalid token")
+		setAnswer(map[string]interface{}{"state": "Token no valido"}, w, http.StatusNotAcceptable)
+	} else {
+		if ok, response := GetExercisesDataFromDni(token); !ok {
+			setAnswer(response, w, http.StatusPreconditionFailed)
+		} else {
+			setAnswer(response, w, http.StatusAccepted)
+		}
+	}
 }
 
 func setAnswer(response map[string]interface{}, w http.ResponseWriter, state int){
@@ -280,9 +324,9 @@ func main() {
 	router.HandleFunc("/verify-email", verifyEmail).Methods(http.MethodPatch, http.MethodOptions)
 	router.HandleFunc("/create-appointments", createAppointments).Methods(http.MethodPost, http.MethodOptions)
 	router.HandleFunc("/create-exercises", createExercises).Methods(http.MethodPost, http.MethodOptions)
-	router.HandleFunc("/get-appointment", getAppointment).Methods(http.MethodGet, http.MethodOptions)
-	router.HandleFunc("/getAll-appointments", getAllAppointments).Methods(http.MethodGet, http.MethodOptions)
-	router.HandleFunc("/get-exercises", getAppointments).Methods(http.MethodGet, http.MethodOptions)
+	router.HandleFunc("/get-appointments", getAppointment).Methods(http.MethodGet, http.MethodOptions)
+	router.HandleFunc("/get-all-appointments", getAllAppointments).Methods(http.MethodGet, http.MethodOptions)
+	router.HandleFunc("/get-exercises", getExercises).Methods(http.MethodGet, http.MethodOptions)
 	/*router.HandleFunc("/update-appointment", updateAppointments).Methods(http.MethodPut, http.MethodOptions)
 	router.HandleFunc("/update-exercise", updateExercises).Methods(http.MethodPut, http.MethodOptions)*/
 	router.HandleFunc("/delete-appointment", deleteAppointments).Methods(http.MethodDelete, http.MethodOptions)
