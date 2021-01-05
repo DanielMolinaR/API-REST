@@ -302,6 +302,20 @@ func DeleteExerciseQuery(sqlStatement, dni, date string) bool {
 	return true
 }
 
+func GetClinicalBackgroundQuery(sqlStatement, dni string) (bool, structures.ClinicalBackgroundData) {
+
+	var clinicalBackground structures.ClinicalBackgroundData
+
+	rows := db.QueryRow(context.Background(), sqlStatement, dni).Scan(&clinicalBackground)
+	if rows == nil {
+		return true, clinicalBackground
+	} else {
+		TerminalLogger.Error("Error with the query: ", rows.Error())
+		DocuLogger.Error("Error with the query: ", rows.Error())
+		return false, clinicalBackground
+	}
+}
+
 func UpdateClinicalBackgroundQuery(sqlStatement, dni string, data structures.ClinicalBackgroundData) bool {
 	_, err := db.Exec(context.Background(), sqlStatement, data, dni)
 	if err != nil {

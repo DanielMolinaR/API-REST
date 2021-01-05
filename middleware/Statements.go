@@ -236,6 +236,11 @@ func deleteExerciseFromDB(dni, date string) bool{
 	return DeleteExerciseQuery(sqlStatement, dni, date)
 }
 
+func getClinicalBackground(data structures.ClinicalBackgroundData) (bool, structures.ClinicalBackgroundData) {
+	sqlStatement := "SELECT clinical_background_data FROM clinicalbackground WHERE (clinical_background_dni_patients = $1)"
+	return GetClinicalBackgroundQuery(sqlStatement, data.Patient_dni)
+}
+
 func updateClinicalBackground(data structures.ClinicalBackgroundData) bool{
 	sqlStatement := "UPDATE clinicalbackground SET clinical_background_data = $1 WHERE (clinical_background_dni_patients = $2)"
 	return UpdateClinicalBackgroundQuery(sqlStatement, data.Patient_dni, data)

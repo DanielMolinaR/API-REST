@@ -348,6 +348,31 @@ func deleteExercise(w http.ResponseWriter, r *http.Request){
 	}
 }
 
+func getClinicalBackground(w http.ResponseWriter, r *http.Request){
+	lib.TerminalLogger.Trace("Getting exercises from: ", r.Host)
+	lib.DocuLogger.Trace("Getting exercises from: ", r.Host)
+
+	//Read the authorization header
+	authHeader := r.Header.Get("Authorization")
+
+	//Extract the Bearer from the data of the header
+	token := strings.Replace(authHeader, "Bearer ", "", -1)
+
+	if ok, response := VerifyTokenIsFromEmployeeOrAdmin(token); !ok{
+		setAnswer(response, w, http.StatusPreconditionFailed)
+	} else {
+		if ok, reqBody := readBody(r); !ok {
+			setAnswer(map[string]interface{}{"state": "Imposible leer la información"} ,w, http.StatusInternalServerError)
+		} else {
+			if ok, response := GetClinicalBackgroundMiddleware(reqBody); !ok {
+				setAnswer(response, w, http.StatusPreconditionFailed)
+			} else {
+				setAnswer(response, w, http.StatusAccepted)
+			}
+		}
+	}
+}
+
 func updateClinicalBackground(w http.ResponseWriter, r *http.Request){
 	lib.TerminalLogger.Trace("Getting exercises from: ", r.Host)
 	lib.DocuLogger.Trace("Getting exercises from: ", r.Host)
@@ -412,6 +437,7 @@ func main() {
 	router.HandleFunc("/update-exercise", updateExercises).Methods(http.MethodPut, http.MethodOptions)*/
 	router.HandleFunc("/delete-appointment", deleteAppointment).Methods(http.MethodDelete, http.MethodOptions)
 	router.HandleFunc("/delete-exercise", deleteExercise).Methods(http.MethodDelete, http.MethodOptions)
+	router.HandleFunc("/get-clinical-background", getClinicalBackground).Methods(http.MethodGet, http.MethodOptions)
 	router.HandleFunc("/update-clinical-background", updateClinicalBackground).Methods(http.MethodPatch, http.MethodOptions)
 
 

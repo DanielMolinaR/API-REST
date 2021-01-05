@@ -459,6 +459,24 @@ func DeleteExerciseDataFromDni(token string, reqBody []byte) (bool, map[string]i
 	}
 }
 
+func GetClinicalBackgroundMiddleware(reqBody []byte) (bool, map[string]interface{}){
+	var data ClinicalBackgroundData
+
+	err := json.Unmarshal(reqBody, &data)
+
+	if err != nil{
+		lib.TerminalLogger.Error("Impossible to retrieve the data from the JSON")
+		lib.DocuLogger.Error("Impossible to retrieve the data from the JSON")
+		return false, map[string]interface{}{"state": "Problemas con la lectura de los datos"}
+	} else {
+		if ok, clinicalData := getClinicalBackground(data); !ok {
+			return false, map[string]interface{}{"state": "Ha habido algún problema actualizando los datos del historila clínico"}
+		} else {
+			return true, map[string]interface{}{"Data": clinicalData}
+		}
+	}
+}
+
 func UpdateClinicalBackgroundMiddleware(reqBody []byte) (bool, map[string]interface{}){
 	var data ClinicalBackgroundData
 
