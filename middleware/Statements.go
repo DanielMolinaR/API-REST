@@ -82,6 +82,12 @@ func doPatientUpdateAndInsert(patient structures.Patient) (bool, string) {
 	}
 }
 
+func createClinicalBackground(dni string) bool {
+	var data structures.ClinicalBackgroundData
+	sqlStatement := "INSERT INTO ClinicalBackground (dni_patients, clinical_background_data) VALUES ($1, $2)"
+	return DoInsertClinicalbackgroundQuery(sqlStatement, dni, data)
+}
+
 func DeleteUserStatement(dni string) {
 	sqlStatemente := "DELETE FROM users WHERE dni = $1"
 	DoDeleteUserQuery(sqlStatemente, dni)

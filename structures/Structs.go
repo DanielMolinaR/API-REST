@@ -50,8 +50,8 @@ type ClinicalBackgroundData struct{
 	Exploration		Exploration	`json:"Exploration"`
 	YellowFlags		string		`json:"Yellow_flags"`
 	Diagnosis		string		`json:"Diagnosis"`		//Diagnóstico de fisioterapia
-	Pobjectives		string		`json:"P_objectives"`	//Objetivos del paciente
-	Tobjectives		string		`json:"T_objectives"`	//Objetivos del tratamiento
+	P_objectives	string		`json:"P_objectives"`	//Objetivos del paciente
+	T_objectives	string		`json:"T_objectives"`	//Objetivos del tratamiento
 	Treatment		string		`json:"Treatment"`		//Tratamiento del fisioterapeuta
 	Progression		string		`json:"Progression"`	//Evolución/Progreso del paciente
 	Observations	string		`json:"Observations"`

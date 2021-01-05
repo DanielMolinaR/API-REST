@@ -57,7 +57,7 @@ func verifyIfDniIsRandom(email string) bool{
 	}
 }
 
-func existingPatientVerification(condition, dni, phone, email, password string) (bool, map[string]interface{}) {
+func existingPatientVerification(condition, dni, phone, password string) (bool, map[string]interface{}) {
 
 	//verify if the new DNI is correct and if it exists in the DB
 	if !verifyDNI(dni){

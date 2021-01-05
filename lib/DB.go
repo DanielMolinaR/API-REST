@@ -143,6 +143,16 @@ func UpdatePatientQuery(sqlStatement string, patient structures.Patient) (bool){
 	return true
 }
 
+func DoInsertClinicalbackgroundQuery(sqlStatement, dni string, data structures.ClinicalBackgroundData) bool {
+	_, err := db.Exec(context.Background(), sqlStatement, dni, data)
+	if err != nil {
+		TerminalLogger.Info("Something went wrong", err)
+		DocuLogger.Info("Something went wrong", err)
+		return false
+	}
+	return true
+}
+
 func DoDeleteUserQuery(sqlStatement, dni string) bool{
 	_, err := db.Exec(context.Background(), sqlStatement, dni)
 	if err != nil {

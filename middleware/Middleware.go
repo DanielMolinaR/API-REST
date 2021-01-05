@@ -155,7 +155,7 @@ func PatientSignUpVerification(reqBody []byte) (bool, map[string]interface{}){
 				} else{
 
 					//As the dni is one created by us. Verify the data and update it on cascade.
-					ok, response := existingPatientVerification("patients", newPatient.User.DNI, newPatient.User.Phone, newPatient.User.Email, newPatient.User.Password)
+					ok, response := existingPatientVerification("patients", newPatient.User.DNI, newPatient.User.Phone, newPatient.User.Password)
 					if !ok {
 						return false, response
 					} else {
@@ -222,7 +222,12 @@ func updatePatientAndSendEmail(newPatient Patient) (bool, map[string]interface{}
 		if !insertUuidExpTimeAndUserId(EmailUuid, id, newPatient.User.Email){
 			return false, map[string]interface{}{"state": "Imposible de generar el url para la verificación del correo"}
 		} else {
-			if ok, response := CreateVerificationEmail(EmailUuid, newPatient.User.Name, newPatient.User.Email,"email-verification", 1); !ok{
+			if !createClinicalBackground(newPatient.User.DNI){
+				//Delete the user from the DB and from Keycloak
+				DeleteUserStatement(newPatient.User.DNI)
+				DeleteKeycloakUser(id)
+				return false, nil
+			} else if ok, response := CreateVerificationEmail(EmailUuid, newPatient.User.Name, newPatient.User.Email,"email-verification", 1); !ok{
 
 				//If the email has not been sent we delete the new row of the uuid for avoiding duplicate keys
 				DeleteUuidRow(EmailUuid)
@@ -436,7 +441,6 @@ func DeleteAppointmentDataFromDni(token string, reqBody []byte) (bool, map[strin
 }
 
 func DeleteExerciseDataFromDni(token string, reqBody []byte) (bool, map[string]interface{}){
-
 	var date Date
 
 	err := json.Unmarshal(reqBody, &date)
@@ -453,6 +457,12 @@ func DeleteExerciseDataFromDni(token string, reqBody []byte) (bool, map[string]i
 			return true, map[string]interface{}{"State": "Ejercicio borrado"}
 		}
 	}
+}
+
+func UpdateClinicalBackgroundMiddleware(reqBody []byte) (bool, map[string]interface{}){
+	var data ClinicalBackgroundData
+
+	err := json.Unmarshal(reqBody, &data)
 }
 
 func generateUUID() string {
