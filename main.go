@@ -348,7 +348,7 @@ func deleteExercise(w http.ResponseWriter, r *http.Request){
 	}
 }
 
-func updateClincialBackground(w http.ResponseWriter, r *http.Request){
+func updateClinicalBackground(w http.ResponseWriter, r *http.Request){
 	lib.TerminalLogger.Trace("Getting exercises from: ", r.Host)
 	lib.DocuLogger.Trace("Getting exercises from: ", r.Host)
 

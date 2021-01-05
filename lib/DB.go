@@ -295,8 +295,18 @@ func DeleteAppointmentQuery(sqlStatement, dni, date string) bool {
 func DeleteExerciseQuery(sqlStatement, dni, date string) bool {
 	_, err := db.Exec(context.Background(), sqlStatement, dni, date)
 	if err != nil {
-		TerminalLogger.Error("Something went wrong deleting the appointment", err)
-		DocuLogger.Error("Something went wrong deleting the appointment", err)
+		TerminalLogger.Error("Something went wrong deleting the exercise", err)
+		DocuLogger.Error("Something went wrong deleting the exercise", err)
+		return false
+	}
+	return true
+}
+
+func UpdateClinicalBackgroundQuery(sqlStatement, dni string, data structures.ClinicalBackgroundData) bool {
+	_, err := db.Exec(context.Background(), sqlStatement, data, dni)
+	if err != nil {
+		TerminalLogger.Error("Something went wrong updating the clinical background", err)
+		DocuLogger.Error("Something went wrong updating the clinical background", err)
 		return false
 	}
 	return true

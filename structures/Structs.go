@@ -45,6 +45,7 @@ type Exploration struct{
 }
 
 type ClinicalBackgroundData struct{
+	Patient_dni 	string 		`json:"Patient_dni"`
 	Reason			string		`json:"Reason"`
 	Anamnesis 		Anamnesis 	`json:"Anamnesis"`
 	Exploration		Exploration	`json:"Exploration"`

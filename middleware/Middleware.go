@@ -432,7 +432,7 @@ func DeleteAppointmentDataFromDni(token string, reqBody []byte) (bool, map[strin
 		return false, map[string]interface{}{"state": "Problemas con la lectura de los datos"}
 	} else {
 		dni := getUserDniFromToken(token)
-		if !DeleteAppointmentFromDB(dni, date.Date) {
+		if !deleteAppointmentFromDB(dni, date.Date) {
 			return false, map[string]interface{}{"state": "Ha habido algún problema encontrando la cita a borrar"}
 		} else {
 			return true, map[string]interface{}{"State": "Cita borrada"}
@@ -451,7 +451,7 @@ func DeleteExerciseDataFromDni(token string, reqBody []byte) (bool, map[string]i
 		return false, map[string]interface{}{"state": "Problemas con la lectura de los datos"}
 	} else {
 		dni := getUserDniFromToken(token)
-		if !DeleteExerciseFromDB(dni, date.Date) {
+		if !deleteExerciseFromDB(dni, date.Date) {
 			return false, map[string]interface{}{"state": "Ha habido algún problema encontrando el ejercicio a borrar"}
 		} else {
 			return true, map[string]interface{}{"State": "Ejercicio borrado"}
@@ -463,6 +463,18 @@ func UpdateClinicalBackgroundMiddleware(reqBody []byte) (bool, map[string]interf
 	var data ClinicalBackgroundData
 
 	err := json.Unmarshal(reqBody, &data)
+
+	if err != nil{
+		lib.TerminalLogger.Error("Impossible to retrieve the data from the JSON")
+		lib.DocuLogger.Error("Impossible to retrieve the data from the JSON")
+		return false, map[string]interface{}{"state": "Problemas con la lectura de los datos"}
+	} else {
+		if !updateClinicalBackground(data) {
+			return false, map[string]interface{}{"state": "Ha habido algún problema actualizando los datos del historila clínico"}
+		} else {
+			return true, map[string]interface{}{"State": "Historial clínico actualizado"}
+		}
+	}
 }
 
 func generateUUID() string {

@@ -226,12 +226,17 @@ func getExercisesDataFromRows(rows pgx.Rows) map[string]map[string]interface{} {
 	return exercises
 }
 
-func DeleteAppointmentFromDB(dni, date string) bool{
+func deleteAppointmentFromDB(dni, date string) bool{
 	sqlStatement := "DELETE FROM appointments WHERE (dni_employee = $1 or dni_patients = $1) AND date_time = $2"
 	return DeleteAppointmentQuery(sqlStatement, dni, date)
 }
 
-func DeleteExerciseFromDB(dni, date string) bool{
+func deleteExerciseFromDB(dni, date string) bool{
 	sqlStatement := "DELETE FROM exercise WHERE dni_patients = $1 AND date_time = $2"
 	return DeleteExerciseQuery(sqlStatement, dni, date)
+}
+
+func updateClinicalBackground(data structures.ClinicalBackgroundData) bool{
+	sqlStatement := "UPDATE clinicalbackground SET clinical_background_data = $1 WHERE (clinical_background_dni_patients = $2)"
+	return UpdateClinicalBackgroundQuery(sqlStatement, data.Patient_dni, data)
 }
