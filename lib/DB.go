@@ -254,7 +254,7 @@ func CheckIfIsAvailable(sqlStatement, dni, date string) bool {
 	return true
 }
 
-func GetAppointmentsAndNamesFromDniQuery(sqlStatement, dni string) (bool, pgx.Rows) {
+func GetRowsFromADniQuery(sqlStatement, dni string) (bool, pgx.Rows) {
 	rows, err := db.Query(context.Background(), sqlStatement, dni)
 	if err != nil {
 		fmt.Println(err)
@@ -270,4 +270,24 @@ func GetAllAppointmentsAndNamesFromQuery(sqlStatement string) (bool, pgx.Rows) {
 		return false, nil
 	}
 	return true, rows
+}
+
+func DeleteAppointmentQuery(sqlStatement, dni, date string) bool {
+	_, err := db.Exec(context.Background(), sqlStatement, dni, date)
+	if err != nil {
+		TerminalLogger.Error("Something went wrong deleting the appointment", err)
+		DocuLogger.Error("Something went wrong deleting the appointment", err)
+		return false
+	}
+	return true
+}
+
+func DeleteExerciseQuery(sqlStatement, dni, date string) bool {
+	_, err := db.Exec(context.Background(), sqlStatement, dni, date)
+	if err != nil {
+		TerminalLogger.Error("Something went wrong deleting the appointment", err)
+		DocuLogger.Error("Something went wrong deleting the appointment", err)
+		return false
+	}
+	return true
 }

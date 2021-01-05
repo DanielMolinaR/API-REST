@@ -92,3 +92,7 @@ type ExercisesResponse struct{
 	Description 	string
 	Exercise_name	string
 }
+
+type Date struct{
+	Date 			string
+}

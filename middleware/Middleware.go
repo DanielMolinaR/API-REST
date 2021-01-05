@@ -415,6 +415,46 @@ func GetExercisesDataFromDni(token string) (bool, map[string]interface{}){
 	}
 }
 
+func DeleteAppointmentDataFromDni(token string, reqBody []byte) (bool, map[string]interface{}){
+
+	var date Date
+
+	err := json.Unmarshal(reqBody, &date)
+
+	if err != nil{
+		lib.TerminalLogger.Error("Impossible to retrieve the data from the JSON")
+		lib.DocuLogger.Error("Impossible to retrieve the data from the JSON")
+		return false, map[string]interface{}{"state": "Problemas con la lectura de los datos"}
+	} else {
+		dni := getUserDniFromToken(token)
+		if !DeleteAppointmentFromDB(dni, date.Date) {
+			return false, map[string]interface{}{"state": "Ha habido algún problema encontrando la cita a borrar"}
+		} else {
+			return true, map[string]interface{}{"State": "Cita borrada"}
+		}
+	}
+}
+
+func DeleteExerciseDataFromDni(token string, reqBody []byte) (bool, map[string]interface{}){
+
+	var date Date
+
+	err := json.Unmarshal(reqBody, &date)
+
+	if err != nil{
+		lib.TerminalLogger.Error("Impossible to retrieve the data from the JSON")
+		lib.DocuLogger.Error("Impossible to retrieve the data from the JSON")
+		return false, map[string]interface{}{"state": "Problemas con la lectura de los datos"}
+	} else {
+		dni := getUserDniFromToken(token)
+		if !DeleteExerciseFromDB(dni, date.Date) {
+			return false, map[string]interface{}{"state": "Ha habido algún problema encontrando el ejercicio a borrar"}
+		} else {
+			return true, map[string]interface{}{"State": "Ejercicio borrado"}
+		}
+	}
+}
+
 func generateUUID() string {
 	uuidWithHyphen := uuid.New()
 	customUuid := strings.Replace(uuidWithHyphen.String(), "-", "", -1)

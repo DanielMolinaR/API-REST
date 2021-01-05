@@ -292,6 +292,62 @@ func getExercises(w http.ResponseWriter, r *http.Request){
 	}
 }
 
+func deleteAppointment(w http.ResponseWriter, r *http.Request){
+	lib.TerminalLogger.Trace("Getting exercises from: ", r.Host)
+	lib.DocuLogger.Trace("Getting exercises from: ", r.Host)
+
+	//Read the authorization header
+	authHeader := r.Header.Get("Authorization")
+
+	//Extract the Bearer from the data of the header
+	token := strings.Replace(authHeader, "Bearer ", "", -1)
+
+	//Check if the token is valid
+	if !VerifyToken(token) {
+		lib.TerminalLogger.Trace("The user is trying to retrieve exercises with an invalid token")
+		lib.DocuLogger.Trace("The user is trying to retrieve exercises with an invalid token")
+		setAnswer(map[string]interface{}{"state": "Token no valido"}, w, http.StatusNotAcceptable)
+	} else {
+		if ok, reqBody := readBody(r); !ok {
+			setAnswer(map[string]interface{}{"state": "Imposible leer la información"} ,w, http.StatusInternalServerError)
+		} else {
+			if ok, response := DeleteAppointmentDataFromDni(token, reqBody); !ok {
+				setAnswer(response, w, http.StatusPreconditionFailed)
+			} else {
+				setAnswer(response, w, http.StatusAccepted)
+			}
+		}
+	}
+}
+
+func deleteExercise(w http.ResponseWriter, r *http.Request){
+	lib.TerminalLogger.Trace("Getting exercises from: ", r.Host)
+	lib.DocuLogger.Trace("Getting exercises from: ", r.Host)
+
+	//Read the authorization header
+	authHeader := r.Header.Get("Authorization")
+
+	//Extract the Bearer from the data of the header
+	token := strings.Replace(authHeader, "Bearer ", "", -1)
+
+	//Check if the token is valid
+	if !VerifyToken(token) {
+		lib.TerminalLogger.Trace("The user is trying to retrieve exercises with an invalid token")
+		lib.DocuLogger.Trace("The user is trying to retrieve exercises with an invalid token")
+		setAnswer(map[string]interface{}{"state": "Token no valido"}, w, http.StatusNotAcceptable)
+	} else {
+		if ok, reqBody := readBody(r); !ok {
+			setAnswer(map[string]interface{}{"state": "Imposible leer la información"} ,w, http.StatusInternalServerError)
+		} else {
+			if ok, response := DeleteExerciseDataFromDni(token, reqBody); !ok {
+				setAnswer(response, w, http.StatusPreconditionFailed)
+			} else {
+				setAnswer(response, w, http.StatusAccepted)
+			}
+		}
+	}
+}
+
 func setAnswer(response map[string]interface{}, w http.ResponseWriter, state int){
 	w.WriteHeader(state)
 	_ = json.NewEncoder(w).Encode(response)
@@ -329,8 +385,8 @@ func main() {
 	router.HandleFunc("/get-exercises", getExercises).Methods(http.MethodGet, http.MethodOptions)
 	/*router.HandleFunc("/update-appointment", updateAppointments).Methods(http.MethodPut, http.MethodOptions)
 	router.HandleFunc("/update-exercise", updateExercises).Methods(http.MethodPut, http.MethodOptions)*/
-	router.HandleFunc("/delete-appointment", deleteAppointments).Methods(http.MethodDelete, http.MethodOptions)
-	router.HandleFunc("/delete-exercise", deleteExercises).Methods(http.MethodDelete, http.MethodOptions)
+	router.HandleFunc("/delete-appointment", deleteAppointment).Methods(http.MethodDelete, http.MethodOptions)
+	router.HandleFunc("/delete-exercise", deleteExercise).Methods(http.MethodDelete, http.MethodOptions)
 
 
 

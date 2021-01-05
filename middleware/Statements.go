@@ -146,7 +146,7 @@ func getAppointmentsFromDB(dni string) (bool, pgx.Rows) {
 	sqlStatement := "SELECT EXTRACT('epoch' from date_time), employee.name AS employee_name, patients.name AS patient_name FROM " +
 		"appointments, employee, patients WHERE (appointments.dni_employee = $1 or appointments.dni_patients = $1) " +
 		"AND (appointments.dni_employee = employee.dni) AND (appointments.dni_patients =  patients.dni)"
-	return GetAppointmentsAndNamesFromDniQuery(sqlStatement, dni)
+	return GetRowsFromADniQuery(sqlStatement, dni)
 }
 
 func getAllAppointmentsFromDB() (bool, pgx.Rows) {
@@ -157,7 +157,7 @@ func getAllAppointmentsFromDB() (bool, pgx.Rows) {
 
 func getExercisesFromDB(dni string) (bool, pgx.Rows) {
 	sqlStatement := "SELECT EXTRACT('epoch' from exercise_date_time), description, name FROM Exercise WHERE dni_patients = $1"
-	return GetAppointmentsAndNamesFromDniQuery(sqlStatement, dni)
+	return GetRowsFromADniQuery(sqlStatement, dni)
 }
 
 func getAppointmentsDataFromRows(rows pgx.Rows) map[string]map[string]interface{} {
@@ -218,4 +218,14 @@ func getExercisesDataFromRows(rows pgx.Rows) map[string]map[string]interface{} {
 		return exercises
 	}
 	return exercises
+}
+
+func DeleteAppointmentFromDB(dni, date string) bool{
+	sqlStatement := "DELETE FROM appointments WHERE (dni_employee = $1 or dni_patients = $1) AND date_time = $2"
+	return DeleteAppointmentQuery(sqlStatement, dni, date)
+}
+
+func DeleteExerciseFromDB(dni, date string) bool{
+	sqlStatement := "DELETE FROM exercise WHERE dni_patients = $1 AND date_time = $2"
+	return DeleteExerciseQuery(sqlStatement, dni, date)
 }
