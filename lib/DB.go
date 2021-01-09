@@ -273,7 +273,7 @@ func GetRowsFromADniQuery(sqlStatement, dni string) (bool, pgx.Rows) {
 	return true, rows
 }
 
-func GetAllAppointmentsAndNamesFromQuery(sqlStatement string) (bool, pgx.Rows) {
+func GetRowsFromQuery(sqlStatement string) (bool, pgx.Rows) {
 	rows, err := db.Query(context.Background(), sqlStatement)
 	if err != nil {
 		fmt.Println(err)

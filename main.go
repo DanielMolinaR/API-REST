@@ -260,7 +260,7 @@ func getAllAppointments(w http.ResponseWriter, r *http.Request){
 		lib.DocuLogger.Trace("The user is trying to retrieve appointments with an invalid token")
 		setAnswer(response, w, http.StatusNotAcceptable)
 	} else {
-		if ok, response := GetAllAppointmentsDataFromDni(); !ok {
+		if ok, response := GetAllAppointmentsData(); !ok {
 			setAnswer(response, w, http.StatusPreconditionFailed)
 		} else {
 			setAnswer(response, w, http.StatusAccepted)
@@ -398,6 +398,48 @@ func updateClinicalBackground(w http.ResponseWriter, r *http.Request){
 	}
 }
 
+func getAllEmployees(w http.ResponseWriter, r *http.Request){
+	lib.TerminalLogger.Trace("Getting all the employees from: ", r.Host)
+	lib.DocuLogger.Trace("Getting all the employees from: ", r.Host)
+
+	//Read the authorization header
+	authHeader := r.Header.Get("Authorization")
+
+	//Check if the token is valid
+	if ok, response := VerifyTokenIsFromAdmin(authHeader); !ok {
+		lib.TerminalLogger.Trace("Someone is trying to retrieve employee's data with an invalid token")
+		lib.DocuLogger.Trace("Someone is trying to retrieve appointments with an invalid token")
+		setAnswer(response, w, http.StatusNotAcceptable)
+	} else {
+		if ok, response := GetAllEmployeesData(); !ok {
+			setAnswer(response, w, http.StatusPreconditionFailed)
+		} else {
+			setAnswer(response, w, http.StatusAccepted)
+		}
+	}
+}
+
+func getAllPatients(w http.ResponseWriter, r *http.Request){
+	lib.TerminalLogger.Trace("Getting all the employees from: ", r.Host)
+	lib.DocuLogger.Trace("Getting all the employees from: ", r.Host)
+
+	//Read the authorization header
+	authHeader := r.Header.Get("Authorization")
+
+	//Check if the token is valid
+	if ok, response := VerifyTokenIsFromEmployeeOrAdmin(authHeader); !ok {
+		lib.TerminalLogger.Trace("Someone is trying to retrieve employee's data with an invalid token")
+		lib.DocuLogger.Trace("Someone is trying to retrieve appointments with an invalid token")
+		setAnswer(response, w, http.StatusNotAcceptable)
+	} else {
+		if ok, response := GetAllPatientsData(); !ok {
+			setAnswer(response, w, http.StatusPreconditionFailed)
+		} else {
+			setAnswer(response, w, http.StatusAccepted)
+		}
+	}
+}
+
 func setAnswer(response map[string]interface{}, w http.ResponseWriter, state int){
 	w.WriteHeader(state)
 	_ = json.NewEncoder(w).Encode(response)
@@ -439,6 +481,8 @@ func main() {
 	router.HandleFunc("/delete-exercise", deleteExercise).Methods(http.MethodDelete, http.MethodOptions)
 	router.HandleFunc("/get-clinical-background", getClinicalBackground).Methods(http.MethodGet, http.MethodOptions)
 	router.HandleFunc("/update-clinical-background", updateClinicalBackground).Methods(http.MethodPatch, http.MethodOptions)
+	router.HandleFunc("/get-all-employees", getAllEmployees).Methods(http.MethodGet, http.MethodOptions)
+	router.HandleFunc("/get-all-patients", getAllPatients).Methods(http.MethodGet, http.MethodOptions)
 
 
 

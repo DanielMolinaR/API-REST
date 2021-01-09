@@ -158,7 +158,7 @@ func getAppointmentsFromDB(dni string) (bool, pgx.Rows) {
 func getAllAppointmentsFromDB() (bool, pgx.Rows) {
 	sqlStatement := "SELECT EXTRACT('epoch' from date_time), employee.name AS employee_name, patients.name AS patient_name FROM " +
 		"appointments, employee, patients WHERE (appointments.dni_employee = employee.dni) AND (appointments.dni_patients =  patients.dni)"
-	return GetAllAppointmentsAndNamesFromQuery(sqlStatement)
+	return GetRowsFromQuery(sqlStatement)
 }
 
 func getExercisesFromDB(dni string) (bool, pgx.Rows) {
@@ -244,4 +244,68 @@ func getClinicalBackground(data structures.ClinicalBackgroundData) (bool, struct
 func updateClinicalBackground(data structures.ClinicalBackgroundData) bool{
 	sqlStatement := "UPDATE clinicalbackground SET clinical_background_data = $1 WHERE (clinical_background_dni_patients = $2)"
 	return UpdateClinicalBackgroundQuery(sqlStatement, data.Patient_dni, data)
+}
+
+func getAllEmployeesFromDB() (bool, pgx.Rows) {
+	sqlStatement := "SELECT * FROM Employee"
+	return GetRowsFromQuery(sqlStatement)
+}
+
+func getEmployeeDataFromRows(rows pgx.Rows) map[string]map[string]interface{} {
+	employees := make(map[string]map[string]interface{})
+
+	var employeeDataResponse structures.Employee
+	rowsCount := 0
+	for rows.Next() {
+
+		err := rows.Scan(&employeeDataResponse.User.DNI, &employeeDataResponse.User.Email, employeeDataResponse.User.Name, employeeDataResponse.User.Surname,
+					employeeDataResponse.User.Phone, employeeDataResponse.Active, employeeDataResponse.Admin)
+		if err != nil {
+			fmt.Println(err)
+			return employees
+		}
+		rowsCount += 1
+		employees["Empleado " + employeeDataResponse.User.Name] = map[string]interface{}{"DNI": employeeDataResponse.User.DNI,
+				"Email": employeeDataResponse.User.Email, "Name": employeeDataResponse.User.Name, "Surname": employeeDataResponse.User.Surname,
+				"Phone": employeeDataResponse.User.Phone, "Active": employeeDataResponse.Active, "Admin": employeeDataResponse.Admin}
+
+	}
+
+	if rows.Err() != nil {
+		fmt.Println(rows.Err())
+		return employees
+	}
+	return employees
+}
+
+func getAllPatientsFromDB() (bool, pgx.Rows) {
+	sqlStatement := "SELECT * FROM Patients"
+	return GetRowsFromQuery(sqlStatement)
+}
+
+func getPatientDataFromRows(rows pgx.Rows) map[string]map[string]interface{} {
+	patients := make(map[string]map[string]interface{})
+
+	var patientDataResponse structures.Patient
+	rowsCount := 0
+	for rows.Next() {
+
+		err := rows.Scan(&patientDataResponse.User.DNI, &patientDataResponse.User.Email, patientDataResponse.User.Name, patientDataResponse.User.Surname,
+			patientDataResponse.User.Phone, patientDataResponse.Birthdate)
+		if err != nil {
+			fmt.Println(err)
+			return patients
+		}
+		rowsCount += 1
+		patients["Paciente " + patientDataResponse.User.Name] = map[string]interface{}{"DNI": patientDataResponse.User.DNI,
+			"Email": patientDataResponse.User.Email, "Name": patientDataResponse.User.Name, "Surname": patientDataResponse.User.Surname,
+			"Phone": patientDataResponse.User.Phone, "Fecha de nacimiento": patientDataResponse.Birthdate}
+
+	}
+
+	if rows.Err() != nil {
+		fmt.Println(rows.Err())
+		return patients
+	}
+	return patients
 }

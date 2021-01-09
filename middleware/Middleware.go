@@ -403,7 +403,7 @@ func GetAppointmentsDataFromDni(token string) (bool, map[string]interface{}){
 	}
 }
 
-func GetAllAppointmentsDataFromDni() (bool, map[string]interface{}){
+func GetAllAppointmentsData() (bool, map[string]interface{}){
 	if ok, rows := getAllAppointmentsFromDB(); !ok{
 		return ok, map[string]interface{}{"state": "Ha habido algún problema encontrando las citas"}
 	} else {
@@ -495,6 +495,21 @@ func UpdateClinicalBackgroundMiddleware(reqBody []byte) (bool, map[string]interf
 	}
 }
 
+func GetAllEmployeesData() (bool, map[string]interface{}){
+	if ok, rows := getAllEmployeesFromDB(); !ok{
+		return ok, map[string]interface{}{"state": "Ha habido algún problema encontrando las citas"}
+	} else {
+		return true, map[string]interface{}{"Citas": getEmployeeDataFromRows(rows)}
+	}
+}
+
+func GetAllPatientsData() (bool, map[string]interface{}){
+	if ok, rows := getAllPatientsFromDB(); !ok{
+		return ok, map[string]interface{}{"state": "Ha habido algún problema encontrando las citas"}
+	} else {
+		return true, map[string]interface{}{"Citas": getPatientDataFromRows(rows)}
+	}
+}
 func generateUUID() string {
 	uuidWithHyphen := uuid.New()
 	customUuid := strings.Replace(uuidWithHyphen.String(), "-", "", -1)
