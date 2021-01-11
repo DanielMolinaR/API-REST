@@ -440,6 +440,20 @@ func getAllPatients(w http.ResponseWriter, r *http.Request){
 	}
 }
 
+func refreshToken(w http.ResponseWriter, r *http.Request){
+	lib.TerminalLogger.Trace("Using a refresh token from: ", r.Host)
+	lib.DocuLogger.Trace("Using a refresh token from: ", r.Host)
+
+	//Read the authorization header
+	authHeader := r.Header.Get("Authorization")
+
+	if ok, accessToken, refreshToken := GettingNewTokens(authHeader); !ok{
+		setAnswer(map[string]interface{}{"state": "Imposible conseguir los token"} ,w, http.StatusInternalServerError)
+	} else {
+		setAnswer(map[string]interface{}{"Access token": accessToken, "Refresh token": refreshToken}, w, http.StatusAccepted)
+	}
+}
+
 func setAnswer(response map[string]interface{}, w http.ResponseWriter, state int){
 	w.WriteHeader(state)
 	_ = json.NewEncoder(w).Encode(response)
@@ -483,7 +497,7 @@ func main() {
 	router.HandleFunc("/update-clinical-background", updateClinicalBackground).Methods(http.MethodPatch, http.MethodOptions)
 	router.HandleFunc("/get-all-employees", getAllEmployees).Methods(http.MethodGet, http.MethodOptions)
 	router.HandleFunc("/get-all-patients", getAllPatients).Methods(http.MethodGet, http.MethodOptions)
-
+	router.HandleFunc("/refresh-token", refreshToken).Methods(http.MethodGet, http.MethodOptions)
 
 
 

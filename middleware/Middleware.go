@@ -510,6 +510,7 @@ func GetAllPatientsData() (bool, map[string]interface{}){
 		return true, map[string]interface{}{"Citas": getPatientDataFromRows(rows)}
 	}
 }
+
 func generateUUID() string {
 	uuidWithHyphen := uuid.New()
 	customUuid := strings.Replace(uuidWithHyphen.String(), "-", "", -1)

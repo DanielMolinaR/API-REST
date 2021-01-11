@@ -67,10 +67,10 @@ func VerifyToken(token string) bool{
 
 }
 
-func VerifyTokenIsFromEmployeeOrAdmin(tokenBrearer string) (bool, map[string]interface{}) {
+func VerifyTokenIsFromEmployeeOrAdmin(tokenBearer string) (bool, map[string]interface{}) {
 
 	//Extract the Bearer from the data of the header
-	token := strings.Replace(tokenBrearer, "Bearer ", "", -1)
+	token := strings.Replace(tokenBearer, "Bearer ", "", -1)
 
 	if !VerifyToken(token){
 		return false, map[string]interface{}{"state": "Token no válido"}
@@ -98,4 +98,22 @@ func VerifyTokenIsFromAdmin(tokenBrearer string) (bool, map[string]interface{}) 
 		return false, map[string]interface{}{"state": "Acceso restringido"}
 	}
 	return true, nil
+}
+
+func GettingNewTokens(refreshTokenBearer string) (bool, string, string) {
+
+	//Extract the Bearer from the data of the header
+	refreshToken := strings.Replace(refreshTokenBearer, "Bearer ", "", -1)
+	if (!VerifyToken(refreshToken)) {
+		return false, "", ""
+	}
+	userTokens, err := client.RefreshToken(ctx, refreshToken, data.ClientId, data.Secret, data.UserRealm)
+	if err != nil {
+		lib.TerminalLogger.Error("Problem getting new tokens ", err)
+		lib.DocuLogger.Error("Problem getting new tokens ", err)
+		return false, "", ""
+	}
+
+	return true, userTokens.AccessToken, userTokens.RefreshToken
+
 }

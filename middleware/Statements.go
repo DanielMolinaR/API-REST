@@ -5,6 +5,7 @@ import (
 	"TFG/API-REST/structures"
 	"fmt"
 	"github.com/jackc/pgx/v4"
+	"github.com/jinzhu/now"
 	"strconv"
 	"time"
 )
@@ -308,4 +309,20 @@ func getPatientDataFromRows(rows pgx.Rows) map[string]map[string]interface{} {
 		return patients
 	}
 	return patients
+}
+
+func getAllEmployeeDnis() (bool, pgx.Rows) {
+	sqlStatement := "SELECT dni, email FROM Employee"
+	return GetRowsFromQuery(sqlStatement)
+}
+
+func getAllApointmentsOfTheDay(employeeDni string) (bool, pgx.Rows) {
+	beginDay := now.BeginningOfDay()
+	endDay := now.EndOfDay()
+	beginDayString := beginDay.String()[:19]
+	endDayString := endDay.String()[:19]
+	sqlStatement := "SELECT EXTRACT('epoch' from date_time), patients.name AS patient_name FROM appointments, patients" +
+		" WHERE (appointments.dni_employee = '" + employeeDni + "') AND (appointments.dni_patients = patients.dni)" +
+		"AND date_time between '" + beginDayString + "' and '" + endDayString + "'"
+	return GetRowsFromQuery(sqlStatement)
 }
