@@ -293,18 +293,24 @@ func AppointmentMiddleware(reqBody []byte) (bool, map[string]interface{}){
 			return ok, response
 		} else{
 
-			//generate a random id for the patient as dni
-			patient_id := "Usuario nuevo: " + generateUUID()
+			answer, patient_id := getStringFromField("patients", "dni", "email", appointmentData.Patient_email)
 
-			_, employee_dni := getStringFromField("employee", "dni", "email", appointmentData.Employee_email)
-			date := time.Date(appointmentData.Year, time.Month(appointmentData.Month), appointmentData.Day, appointmentData.Hour, appointmentData.Minute,0, 0, time.UTC)
-			dateAsString := date.String()[:20]
-			if !insertNewRandomUser(patient_id, appointmentData.Patient_name, appointmentData.Patient_email, appointmentData.Patient_phone){
-				return false, map[string]interface{}{"state": "Problemas añadiendo el usuario nuevo"}
-			} else 	if ok, response := verifyAppointmentAvailableness(patient_id, employee_dni, dateAsString); !ok{
-				return false, response
+			if (!answer && patient_id=="") {
+				//generate a random id for the patient as dni
+				patient_id := "Usuario nuevo: " + generateUUID()
+
+				if !insertNewRandomUser(patient_id, appointmentData.Patient_name, appointmentData.Patient_email, appointmentData.Patient_phone) {
+					return false, map[string]interface{}{"state": "Problemas añadiendo el usuario nuevo"}
+				}
 			} else {
-				return saveAppointmentAndSendNotification(patient_id, employee_dni, dateAsString, appointmentData)
+				date := time.Date(appointmentData.Year, time.Month(appointmentData.Month), appointmentData.Day, appointmentData.Hour, appointmentData.Minute, 0, 0, time.UTC)
+				dateAsString := date.String()[:20]
+				_, employee_dni := getStringFromField("employee", "dni", "email", appointmentData.Employee_email)
+				if ok, response := verifyAppointmentAvailableness(patient_id, employee_dni, dateAsString); !ok{
+					return false, response
+				} else {
+					return saveAppointmentAndSendNotification(patient_id, employee_dni, dateAsString, appointmentData)
+				}
 			}
 		}
 	} else{
