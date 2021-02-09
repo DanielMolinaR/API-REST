@@ -297,20 +297,15 @@ func AppointmentMiddleware(reqBody []byte) (bool, map[string]interface{}){
 
 			if (!answer && patient_id=="") {
 				//generate a random id for the patient as dni
-				patient_id := "Usuario nuevo: " + generateUUID()
+				patient_uuid := "Usuario nuevo: " + generateUUID()
 
 				if !insertNewRandomUser(patient_id, appointmentData.Patient_name, appointmentData.Patient_email, appointmentData.Patient_phone) {
 					return false, map[string]interface{}{"state": "Problemas añadiendo el usuario nuevo"}
+				} else {
+					return verifyAndSaveApointment(appointmentData, patient_uuid)
 				}
 			} else {
-				date := time.Date(appointmentData.Year, time.Month(appointmentData.Month), appointmentData.Day, appointmentData.Hour, appointmentData.Minute, 0, 0, time.UTC)
-				dateAsString := date.String()[:20]
-				_, employee_dni := getStringFromField("employee", "dni", "email", appointmentData.Employee_email)
-				if ok, response := verifyAppointmentAvailableness(patient_id, employee_dni, dateAsString); !ok{
-					return false, response
-				} else {
-					return saveAppointmentAndSendNotification(patient_id, employee_dni, dateAsString, appointmentData)
-				}
+				return verifyAndSaveApointment(appointmentData, patient_id)
 			}
 		}
 	} else{
@@ -327,6 +322,17 @@ func AppointmentMiddleware(reqBody []byte) (bool, map[string]interface{}){
 				return saveAppointmentAndSendNotification(patient_dni, employee_dni, dateAsString, appointmentData)
 			}
 		}
+	}
+}
+
+func verifyAndSaveApointment(appointmentData Appointment, patient_id string) (bool, map[string]interface{}){
+	date := time.Date(appointmentData.Year, time.Month(appointmentData.Month), appointmentData.Day, appointmentData.Hour, appointmentData.Minute, 0, 0, time.UTC)
+	dateAsString := date.String()[:20]
+	_, employee_dni := getStringFromField("employee", "dni", "email", appointmentData.Employee_email)
+	if ok, response := verifyAppointmentAvailableness(patient_id, employee_dni, dateAsString); !ok{
+		return false, response
+	} else {
+		return saveAppointmentAndSendNotification(patient_id, employee_dni, dateAsString, appointmentData)
 	}
 }
 
