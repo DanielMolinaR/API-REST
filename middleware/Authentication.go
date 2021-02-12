@@ -41,8 +41,8 @@ func decodeToken(userToken string) *jwt.MapClaims {
 	_, claims, err := client.DecodeAccessToken(ctx, userToken, data.UserRealm, "account")
 
 	if err!=nil{
-		lib.TerminalLogger.Info("Problem with the decoding", err)
-		lib.DocuLogger.Info("Problem with the decoding", err)
+		lib.TerminalLogger.Error("Problem with the decoding", err)
+		lib.DocuLogger.Error("Problem with the decoding", err)
 		return nil
 	}
 

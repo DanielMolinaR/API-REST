@@ -5,6 +5,7 @@ import (
 	. "TFG/API-REST/middleware"
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -473,11 +474,11 @@ func readBody(r *http.Request) (bool, []byte){
 
 func main() {
 	//routes
-	/*c := cors.New(cors.Options{
+	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"*", "http://localhost:8080"},
 		AllowCredentials: true,
 		AllowedHeaders: []string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"},
-	})*/
+	})
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/login", login).Methods(http.MethodPost, http.MethodOptions)
 	router.HandleFunc("/generate-and-send-unique-URL", generateAndSendUniqueUrlForSignUp).Methods(http.MethodPost, http.MethodOptions)
@@ -501,9 +502,9 @@ func main() {
 
 
 
-	//handler := c.Handler(router)
-	router.Use(mux.CORSMethodMiddleware(router))
-	log.Fatal(http.ListenAndServe("localhost:3000", router))
+	handler := c.Handler(router)
+	//router.Use(mux.CORSMethodMiddleware(handler))
+	log.Fatal(http.ListenAndServe("localhost:3000", handler))
 }
 
 

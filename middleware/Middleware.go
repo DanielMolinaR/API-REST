@@ -31,8 +31,9 @@ func UsersLogin(reqBody []byte) (bool, map[string]interface{}) {
 		//the name of the user, the tokens and the role
 		lib.TerminalLogger.Trace("User logged in with the DNI: ******", userToLogIn.DNI[6:])
 		lib.DocuLogger.Trace("User logged in with the DNI: ******", userToLogIn.DNI[6:])
-		return true, map[string]interface{}{"state": "Sesión iniciada", "Access token": accessToken,
-			"Refresh token": refreshToken, "Role": getTheRole(accessToken), "Email": getEmail(accessToken)}
+		_, name := getStringFromField("users", "name", "dni", userToLogIn.DNI)
+		return true, map[string]interface{}{"state": "Sesión iniciada", "accessToken": accessToken,
+			"refreshToken": refreshToken, "role": getTheRole(accessToken), "email": getEmail(accessToken), "userName": name}
 	}
 }
 
@@ -411,7 +412,7 @@ func GetAppointmentsDataFromDni(token string) (bool, map[string]interface{}){
 	if ok, rows := getAppointmentsFromDB(dni); !ok{
 		return ok, map[string]interface{}{"state": "Ha habido algún problema encontrando las citas"}
 	} else {
-		return true, map[string]interface{}{"Citas": getAppointmentsDataFromRows(rows)}
+		return true, map[string]interface{}{"dataToShow": getAppointmentsDataFromRows(rows)}
 	}
 }
 
@@ -419,7 +420,7 @@ func GetAllAppointmentsData() (bool, map[string]interface{}){
 	if ok, rows := getAllAppointmentsFromDB(); !ok{
 		return ok, map[string]interface{}{"state": "Ha habido algún problema encontrando las citas"}
 	} else {
-		return true, map[string]interface{}{"Citas": getAppointmentsDataFromRows(rows)}
+		return true, map[string]interface{}{"dataToShow": getAppointmentsDataFromRows(rows)}
 	}
 }
 
@@ -428,7 +429,7 @@ func GetExercisesDataFromDni(token string) (bool, map[string]interface{}){
 	if ok, rows := getExercisesFromDB(dni); !ok{
 		return ok, map[string]interface{}{"state": "Ha habido algún problema encontrando las citas"}
 	} else {
-		return true, map[string]interface{}{"Ejercicios": getExercisesDataFromRows(rows)}
+		return true, map[string]interface{}{"dataToShow": getExercisesDataFromRows(rows)}
 	}
 }
 
@@ -511,7 +512,7 @@ func GetAllEmployeesData() (bool, map[string]interface{}){
 	if ok, rows := getAllEmployeesFromDB(); !ok{
 		return ok, map[string]interface{}{"state": "Ha habido algún problema encontrando las citas"}
 	} else {
-		return true, map[string]interface{}{"Citas": getEmployeeDataFromRows(rows)}
+		return true, map[string]interface{}{"dataToShow": getEmployeeDataFromRows(rows)}
 	}
 }
 
@@ -519,7 +520,7 @@ func GetAllPatientsData() (bool, map[string]interface{}){
 	if ok, rows := getAllPatientsFromDB(); !ok{
 		return ok, map[string]interface{}{"state": "Ha habido algún problema encontrando las citas"}
 	} else {
-		return true, map[string]interface{}{"Citas": getPatientDataFromRows(rows)}
+		return true, map[string]interface{}{"dataToShow": getPatientDataFromRows(rows)}
 	}
 }
 
