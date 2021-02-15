@@ -451,7 +451,7 @@ func refreshToken(w http.ResponseWriter, r *http.Request){
 	if ok, accessToken, refreshToken := GettingNewTokens(authHeader); !ok{
 		setAnswer(map[string]interface{}{"state": "Imposible conseguir los token"} ,w, http.StatusInternalServerError)
 	} else {
-		setAnswer(map[string]interface{}{"Access token": accessToken, "Refresh token": refreshToken}, w, http.StatusAccepted)
+		setAnswer(map[string]interface{}{"accessToken": accessToken, "refreshToken": refreshToken}, w, http.StatusAccepted)
 	}
 }
 

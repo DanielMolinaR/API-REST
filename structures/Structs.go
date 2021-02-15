@@ -1,5 +1,7 @@
 package structures
 
+import "time"
+
 type Users struct{
 	DNI         string 	`json:"DNI"`
 	Password	string	`json:"Password"`
@@ -11,7 +13,7 @@ type Users struct{
 
 type Patient struct{
 	User Users	`json:"Data"`
-	Birthdate  string 	`json:"Birthdate"`
+	Birthdate  time.Time 	`json:"Birthdate"`
 }
 
 type Employee struct{

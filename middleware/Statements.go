@@ -259,8 +259,8 @@ func getEmployeeDataFromRows(rows pgx.Rows) map[string]map[string]interface{} {
 	rowsCount := 0
 	for rows.Next() {
 
-		err := rows.Scan(&employeeDataResponse.User.DNI, &employeeDataResponse.User.Email, employeeDataResponse.User.Name, employeeDataResponse.User.Surname,
-					employeeDataResponse.User.Phone, employeeDataResponse.Active, employeeDataResponse.Admin)
+		err := rows.Scan(&employeeDataResponse.User.DNI, &employeeDataResponse.User.Email, &employeeDataResponse.User.Name, &employeeDataResponse.User.Surname,
+					&employeeDataResponse.User.Phone, &employeeDataResponse.Active, &employeeDataResponse.Admin)
 		if err != nil {
 			fmt.Println(err)
 			return employees
@@ -291,8 +291,8 @@ func getPatientDataFromRows(rows pgx.Rows) map[string]map[string]interface{} {
 	rowsCount := 0
 	for rows.Next() {
 
-		err := rows.Scan(&patientDataResponse.User.DNI, &patientDataResponse.User.Email, patientDataResponse.User.Name, patientDataResponse.User.Surname,
-			patientDataResponse.User.Phone, patientDataResponse.Birthdate)
+		err := rows.Scan(&patientDataResponse.User.DNI, &patientDataResponse.User.Email, &patientDataResponse.User.Name, &patientDataResponse.User.Surname,
+			&patientDataResponse.User.Phone, &patientDataResponse.Birthdate)
 		if err != nil {
 			fmt.Println(err)
 			return patients
