@@ -150,10 +150,11 @@ func checkIfAvailable(condition, dni, date, table string) bool{
 }
 
 func getAppointmentsFromDB(dni string) (bool, pgx.Rows) {
+	actualDate := time.Now()
 	sqlStatement := "SELECT EXTRACT('epoch' from date_time), employee.name AS employee_name, patients.name AS patient_name FROM " +
 		"appointments, employee, patients WHERE (appointments.dni_employee = $1 or appointments.dni_patients = $1) " +
-		"AND (appointments.dni_employee = employee.dni) AND (appointments.dni_patients =  patients.dni)"
-	return GetRowsFromADniQuery(sqlStatement, dni)
+		"AND (appointments.dni_employee = employee.dni) AND (appointments.dni_patients =  patients.dni) and date_time > $2"
+	return GetRowsFromADniQuery(sqlStatement, dni, actualDate.String()[:19])
 }
 
 func getAllAppointmentsFromDB() (bool, pgx.Rows) {
@@ -163,8 +164,9 @@ func getAllAppointmentsFromDB() (bool, pgx.Rows) {
 }
 
 func getExercisesFromDB(dni string) (bool, pgx.Rows) {
-	sqlStatement := "SELECT EXTRACT('epoch' from exercise_date_time), description, name FROM Exercise WHERE dni_patients = $1"
-	return GetRowsFromADniQuery(sqlStatement, dni)
+	actualDate := time.Now()
+	sqlStatement := "SELECT EXTRACT('epoch' from exercise_date_time), description, name FROM Exercise WHERE dni_patients = $1 and exercise_date_time > $2"
+	return GetRowsFromADniQuery(sqlStatement, dni, actualDate.String()[:19])
 }
 
 func getAppointmentsDataFromRows(rows pgx.Rows) map[string]map[string]interface{} {
@@ -181,7 +183,7 @@ func getAppointmentsDataFromRows(rows pgx.Rows) map[string]map[string]interface{
 			return appointments
 		}
 		dateAsSomething := time.Unix(date, 0)
-		finalDate := time.Date(dateAsSomething.Year(), dateAsSomething.Month(), dateAsSomething.Day(), dateAsSomething.Hour()-1, dateAsSomething.Minute(),
+		finalDate := time.Date(dateAsSomething.Year(), dateAsSomething.Month(), dateAsSomething.Day(), dateAsSomething.Hour(), dateAsSomething.Minute(),
 			dateAsSomething.Second(), 0, time.UTC)
 		appointmentDataResponse.Date = finalDate.String()[:20]
 		rowsCount += 1
@@ -211,7 +213,7 @@ func getExercisesDataFromRows(rows pgx.Rows) map[string]map[string]interface{} {
 			return exercises
 		}
 		dateAsSomething := time.Unix(date, 0)
-		finalDate := time.Date(dateAsSomething.Year(), dateAsSomething.Month(), dateAsSomething.Day(), dateAsSomething.Hour()-1, dateAsSomething.Minute(),
+		finalDate := time.Date(dateAsSomething.Year(), dateAsSomething.Month(), dateAsSomething.Day(), dateAsSomething.Hour(), dateAsSomething.Minute(),
 			dateAsSomething.Second(), 0, time.UTC)
 		exerciseDataResponse.Date = finalDate.String()[:20]
 		rowsCount += 1

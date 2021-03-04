@@ -41,6 +41,11 @@ func init() {
 	if err != nil {
 		fmt.Println(err)
 	}
+	_, err = db.Exec(context.Background(), "SET time zone gmt")
+	if err != nil {
+		TerminalLogger.Info("Something went wrong setting the time zone", err)
+		DocuLogger.Info("Something went wrong setting the time zone", err)
+	}
 }
 
 func SelectQuery(sqlStatement, data string) (bool) {
@@ -75,28 +80,6 @@ func SelectEmployeeDataQuery(sqlStatement, data string) structures.Employee {
 
 	return employee
 }
-
-/*func selectAppointmentsQuery(db *pgxpool.Pool, sqlStatement, data string) (bool, pgx.Rows) {
-
-	rows, err := db.Query(context.Background(), sqlStatement, data)
-
-	if err != nil{
-		TerminalLogger.Warn("Error with the query:", err)
-		DocuLogger.Warn("Error with the query:", err)
-		return false, ""
-	}
-
-	//    for rows.Next() {
-	//        var n int32
-	//        err = rows.Scan(&n) escaneamos cada parametro de la base de datos
-	//        if err != nil {
-	//            return err
-	//        }
-	//		  la fecha (timestamp) la descomponemos en dia y hora
-	//        sum += n  añadimos los datos en una biblioteca o array y devolvemos esta
-	//    }
-
-}*/
 
 func InsertEmployeeQuery(sqlStatement string, employee structures.Employee) (bool){
 	_, err := db.Exec(context.Background(), sqlStatement, employee.Active, employee.Admin, employee.User.DNI,
@@ -264,8 +247,8 @@ func CheckIfIsAvailable(sqlStatement, dni, date string) bool {
 	return true
 }
 
-func GetRowsFromADniQuery(sqlStatement, dni string) (bool, pgx.Rows) {
-	rows, err := db.Query(context.Background(), sqlStatement, dni)
+func GetRowsFromADniQuery(sqlStatement, dni, date string) (bool, pgx.Rows) {
+	rows, err := db.Query(context.Background(), sqlStatement, dni, date)
 	if err != nil {
 		fmt.Println(err)
 		return false, nil

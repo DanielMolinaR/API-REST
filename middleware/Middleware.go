@@ -315,7 +315,7 @@ func AppointmentMiddleware(reqBody []byte) (bool, map[string]interface{}){
 		} else{
 			_, employee_dni := getStringFromField("employee", "dni", "email", appointmentData.Employee_email)
 			date := time.Date(appointmentData.Year, time.Month(appointmentData.Month), appointmentData.Day, appointmentData.Hour, appointmentData.Minute,0, 0, time.UTC)
-			dateAsString := date.String()[:20]
+			dateAsString := date.String()[:20] + "+00"
 			_, patient_dni := getStringFromField("patients", "dni", "email", appointmentData.Patient_email)
 			if ok, response := verifyAppointmentAvailableness(patient_dni, employee_dni, dateAsString); !ok{
 				return false, response
@@ -346,12 +346,12 @@ func saveAppointmentAndSendNotification(patient_id, employee_dni, date string, a
 			minute = "0" + minute
 		}
 		_, employee_name := getStringFromField("employee", "name", "dni", employee_dni)
-		ok := sendReminder("Cita fisioterapia", "Tienes una cita pendiente con " + employee_name,
+		ok := sendNotification("Cita fisioterapia", "Tienes una cita pendiente con " + employee_name,
 			strconv.Itoa(appointmentData.Day), strconv.Itoa(appointmentData.Hour) + ":" + minute,
 			"http://localhost:8081/calendar", appointmentData.Patient_email, appointmentData.Month)
 		if ok {
-			lib.TerminalLogger.Trace("The reminder has been sent")
-			lib.DocuLogger.Trace("The reminder has been sent")
+			lib.TerminalLogger.Trace("The notification has been sent")
+			lib.DocuLogger.Trace("The notification has been sent")
 		} else {
 			lib.TerminalLogger.Error("The reminder has not been sent")
 			lib.DocuLogger.Error("The reminder has not been sent")
@@ -377,7 +377,7 @@ func ExerciseMiddleware(reqBody []byte) (bool, map[string]interface{}){
 		date := time.Date(exerciseData.Year, time.Month(exerciseData.Month), exerciseData.Day, exerciseData.Hour, exerciseData.Minute,0, 0, time.UTC)
 		dateAsString := date.String()[:20]
 		if !verifyPatientAvaliableness(patient_dni, dateAsString, "exercises"){
-			return false, map[string]interface{}{"state": "El apciente ya tiene un ejercicio en esta fecha"}
+			return false, map[string]interface{}{"state": "El paciente ya tiene un ejercicio en esta fecha"}
 		} else {
 			return saveExerciseAndSendNotification(patient_dni, dateAsString, exerciseData)
 		}
@@ -392,15 +392,15 @@ func saveExerciseAndSendNotification(patient_dni string, date string, exerciseDa
 		if (exerciseData.Minute >= 0 && exerciseData.Minute<10){
 			minute = "0" + minute
 		}
-		ok := sendReminder("Ejercicio pendiente: " + exerciseData.Exercise_name, exerciseData.Description,
+		ok := sendNotification("Ejercicio pendiente: " + exerciseData.Exercise_name, exerciseData.Description,
 			strconv.Itoa(exerciseData.Day), strconv.Itoa(exerciseData.Hour) + ":" + minute,
 			"http://localhost:8081/calendar", exerciseData.Patient_email, exerciseData.Month)
 		if ok {
 			lib.TerminalLogger.Trace("The reminder has been sent")
 			lib.DocuLogger.Trace("The reminder has been sent")
 		} else {
-			lib.TerminalLogger.Error("The reminder has not been sent")
-			lib.DocuLogger.Error("The reminder has not been sent")
+			lib.TerminalLogger.Error("The notification has not been sent")
+			lib.DocuLogger.Error("The notification has not been sent")
 		}
 		setExerciseReminder(exerciseData)
 		return true, map[string]interface{}{"state": "Ejercicio creado"}

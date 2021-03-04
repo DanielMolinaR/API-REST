@@ -73,7 +73,7 @@ func VerifyTokenIsFromEmployeeOrAdmin(tokenBearer string) (bool, map[string]inte
 	token := strings.Replace(tokenBearer, "Bearer ", "", -1)
 
 	if !VerifyToken(token){
-		return false, map[string]interface{}{"state": "Token no válido"}
+		return false, map[string]interface{}{"state": "Token no valido"}
 
 		//Verify if the user that is requesting this endpoint is an employee or an admin
 	} else if getTheRole(token)< 1 {
@@ -90,7 +90,7 @@ func VerifyTokenIsFromAdmin(tokenBrearer string) (bool, map[string]interface{}) 
 	token := strings.Replace(tokenBrearer, "Bearer ", "", -1)
 
 	if !VerifyToken(token){
-		return false, map[string]interface{}{"state": "Token no válido"}
+		return false, map[string]interface{}{"state": "Token no valido"}
 
 		//Verify if the user that is requesting this endpoint is an employee or an admin
 	} else if getTheRole(token) != 2 {

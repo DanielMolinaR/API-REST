@@ -421,8 +421,8 @@ func getAllEmployees(w http.ResponseWriter, r *http.Request){
 }
 
 func getAllPatients(w http.ResponseWriter, r *http.Request){
-	lib.TerminalLogger.Trace("Getting all the employees from: ", r.Host)
-	lib.DocuLogger.Trace("Getting all the employees from: ", r.Host)
+	lib.TerminalLogger.Trace("Getting all the patients from: ", r.Host)
+	lib.DocuLogger.Trace("Getting all the patients from: ", r.Host)
 
 	//Read the authorization header
 	authHeader := r.Header.Get("Authorization")
