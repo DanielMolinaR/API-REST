@@ -475,9 +475,10 @@ func readBody(r *http.Request) (bool, []byte){
 func main() {
 	//routes
 	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"*", "http://localhost:8080"},
+		AllowedOrigins: []string{"*", "http://localhost:8081"},
+		AllowedMethods: []string{http.MethodDelete, http.MethodGet, http.MethodPost,http.MethodPatch},
 		AllowCredentials: true,
-		AllowedHeaders: []string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"},
+		AllowedHeaders: []string{"Access-Control-Allow-Origin", "Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"},
 	})
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/login", login).Methods(http.MethodPost, http.MethodOptions)

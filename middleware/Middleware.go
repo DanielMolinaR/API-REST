@@ -445,7 +445,7 @@ func DeleteAppointmentDataFromDni(token string, reqBody []byte) (bool, map[strin
 		return false, map[string]interface{}{"state": "Problemas con la lectura de los datos"}
 	} else {
 		dni := getUserDniFromToken(token)
-		if !deleteAppointmentFromDB(dni, date.Date) {
+		if !deleteAppointmentFromDB(dni, date.DateTime) {
 			return false, map[string]interface{}{"state": "Ha habido algún problema encontrando la cita a borrar"}
 		} else {
 			return true, map[string]interface{}{"State": "Cita borrada"}
@@ -464,7 +464,7 @@ func DeleteExerciseDataFromDni(token string, reqBody []byte) (bool, map[string]i
 		return false, map[string]interface{}{"state": "Problemas con la lectura de los datos"}
 	} else {
 		dni := getUserDniFromToken(token)
-		if !deleteExerciseFromDB(dni, date.Date) {
+		if !deleteExerciseFromDB(dni, date.DateTime) {
 			return false, map[string]interface{}{"state": "Ha habido algún problema encontrando el ejercicio a borrar"}
 		} else {
 			return true, map[string]interface{}{"State": "Ejercicio borrado"}

@@ -235,7 +235,7 @@ func deleteAppointmentFromDB(dni, date string) bool{
 }
 
 func deleteExerciseFromDB(dni, date string) bool{
-	sqlStatement := "DELETE FROM exercise WHERE dni_patients = $1 AND date_time = $2"
+	sqlStatement := "DELETE FROM exercise WHERE dni_patients = $1 AND exercise_date_time = $2"
 	return DeleteExerciseQuery(sqlStatement, dni, date)
 }
 

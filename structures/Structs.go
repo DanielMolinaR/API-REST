@@ -97,5 +97,5 @@ type ExercisesResponse struct{
 }
 
 type Date struct{
-	Date 			string
+	DateTime		string
 }
