@@ -1,7 +1,5 @@
 package structures
 
-import "time"
-
 type Users struct{
 	DNI         string 	`json:"DNI"`
 	Password	string	`json:"Password"`
@@ -13,7 +11,7 @@ type Users struct{
 
 type Patient struct{
 	User Users	`json:"Data"`
-	Birthdate  time.Time 	`json:"Birthdate"`
+	Birthdate  string	`json:"Birthdate"`
 }
 
 type Employee struct{
@@ -64,6 +62,7 @@ type Appointment struct{
 	New_user		bool	`json:"New_user"`		//if false phone and name must to be empty
 	Patient_phone	string	`json:"Patient_phone"`
 	Patient_name	string	`json:"Patient_name"`
+	Patient_surname	string	`json:"Patient_surname"`
 	Patient_email 	string 	`json:"Patient_email"`
 	Employee_email	string	`json:"Employee_email"`	//This never going to be empty because when the user log in we send back the email so here we recieve the email from the store
 	Hour			int		`json:"Hour"`
@@ -88,6 +87,8 @@ type AppointmentResponse struct{
 	Date 			string
 	Employee_name 	string
 	Patient_name	string
+	Employee_surname 	string
+	Patient_surname	string
 }
 
 type ExercisesResponse struct{

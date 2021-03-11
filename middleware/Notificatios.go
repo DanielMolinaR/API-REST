@@ -61,11 +61,11 @@ func CreateVerificationEmail(uuid, name, email, path string, condition int) (boo
 	if !sendEmail(name, url, email, condition) {
 		lib.TerminalLogger.Error("Impossible to send the email")
 		lib.DocuLogger.Error("Impossible to send the email")
-		return false, map[string]interface{}{"state": "Imposible enviar el correo"}
+		return false, map[string]interface{}{"state": "No se ha podido enviar el correo de verificación"}
 	} else {
 		lib.TerminalLogger.Trace("Email for Sign Up sent to: " + email)
 		lib.DocuLogger.Trace("Email for Sign Up sent to: " + email)
-		return true, map[string]interface{}{"state": "Correo enviado"}
+		return true, map[string]interface{}{"state": "Correo de verificación enviado"}
 	}
 }
 

@@ -5,19 +5,18 @@ import (
 	"TFG/API-REST/structures"
 	"github.com/badoux/checkmail"
 	"strconv"
-	"strings"
 	"time"
 	"unicode"
 )
 
 var letters = []string{"t", "r", "w", "a", "g", "m", "y", "f", "p", "d", "x", "b", "n",	"j", "z", "s", "q",	"v", "h", "l", "c", "k", "e"}
 
-func userDataVerifications(condition, dni, phone, email, password string) (bool, map[string]interface{}){
+func userDataVerifications(dni, phone, email, password string) (bool, map[string]interface{}){
 
 	//verify if the DNI is correct and if it exists in the DB
 	if !verifyDNI(dni){
 		return false, map[string]interface{}{"state": "DNI incorrecto"}
-	} else if checkIfExists(condition,"dni", "dni", dni){
+	} else if checkIfExists("users","dni", "dni", dni){
 		return false, map[string]interface{}{"state": "Ya existe este DNI"}
 	}
 
@@ -29,7 +28,7 @@ func userDataVerifications(condition, dni, phone, email, password string) (bool,
 	//verify if the email is correct and if it exists in the DB
 	if !verifyEmail(email){
 		return false, map[string]interface{}{"state": "Correo no válido"}
-	} else if checkIfExists(condition,"email", "email", email){
+	} else if checkIfExists("users","email", "email", email){
 		return false, map[string]interface{}{"state": "Ya existe este correo"}
 	}
 
@@ -44,7 +43,7 @@ func userDataVerifications(condition, dni, phone, email, password string) (bool,
 }
 
 func verifyIfDniIsRandom(email string) bool{
-	if ok, dni := getStringFromField("patients", "dni", "email", email); !ok{
+	if ok, dni := getStringFromField("users", "dni", "email", email); !ok{
 		return false
 	} else {
 
@@ -57,12 +56,12 @@ func verifyIfDniIsRandom(email string) bool{
 	}
 }
 
-func existingPatientVerification(condition, dni, phone, password string) (bool, map[string]interface{}) {
+func existingPatientVerification(dni, phone, password string) (bool, map[string]interface{}) {
 
 	//verify if the new DNI is correct and if it exists in the DB
 	if !verifyDNI(dni){
 		return false, map[string]interface{}{"state": "DNI incorrecto"}
-	} else if checkIfExists(condition,"dni", "dni", dni){
+	} else if checkIfExists("users","dni", "dni", dni){
 		return false, map[string]interface{}{"state": "Ya existe este DNI"}
 	}
 
@@ -101,7 +100,7 @@ func verifyDNI(dni string) bool{
 
 func verifyLastCharIsALetter(dni string) bool{
 	//Take the last char
-	c := strings.ToUpper(dni[8:])
+	c := dni[8:]
 	//Verified if the last char is a Letter
 	// parsing it to and int and using ASCII
 	asciiValue := int(c[0])
@@ -242,18 +241,16 @@ func VerifyExpTime(unixExpTime int64) (bool) {
 func verifyAppointmentData(appointmentData structures.Appointment, newUser bool) (bool, map[string]interface{}) {
 
 	if newUser {
-		//verify patient email
+		//verify user email
 		if !verifyEmail(appointmentData.Patient_email) {
 			return false, map[string]interface{}{"state": "Correo no válido"}
-		} else if checkIfExists("patients", "email", "email", appointmentData.Patient_email) {
+		} else if checkIfExists("users", "email", "email", appointmentData.Patient_email) {
 			return false, map[string]interface{}{"state": "Ya existe este correo"}
 		}
 
-		//verify patient phone number
+		//verify user phone number
 		if !verifyPhoneNumber(appointmentData.Patient_phone){
 			return false, map[string]interface{}{"state": "Número de telefono no válido"}
-		} else if checkIfExists("patients","phone", "phone", appointmentData.Patient_phone){
-			return false, map[string]interface{}{"state": "Ya existe este correo"}
 		}
 
 	} else {

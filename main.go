@@ -150,12 +150,12 @@ func verifyEmail(w http.ResponseWriter, r *http.Request){
 	if expTime == 0{
 		lib.TerminalLogger.Error("Empty fields from the table uniqueUrl: ", uuid, " ", expTime)
 		lib.DocuLogger.Error("Empty fields from the table uniqueUrl", uuid, " ", expTime)
-		setAnswer(map[string]interface{}{"state": "El slug no existe"}, w, http.StatusNotAcceptable)
+		setAnswer(map[string]interface{}{"state": "No ha sido posible verificar la dirección de correo"}, w, http.StatusNotAcceptable)
 	}else if !VerifyExpTime(expTime){
 
 		//If it's expired we must update the expiration date and send the email again
 		if !UpdateExpTimeFromUuid(uuid) {
-			setAnswer(map[string]interface{}{"state": "Imposible verificar el correo"}, w, http.StatusInternalServerError)
+			setAnswer(map[string]interface{}{"state": "No ha sido posible verificar la dirección de correo"}, w, http.StatusInternalServerError)
 		} else {
 
 			//Once the expiration date is updated we must send the email
@@ -350,8 +350,8 @@ func deleteExercise(w http.ResponseWriter, r *http.Request){
 }
 
 func getClinicalBackground(w http.ResponseWriter, r *http.Request){
-	lib.TerminalLogger.Trace("Getting exercises from: ", r.Host)
-	lib.DocuLogger.Trace("Getting exercises from: ", r.Host)
+	lib.TerminalLogger.Trace("Getting clinical background from: ", r.Host)
+	lib.DocuLogger.Trace("Getting clinical background from: ", r.Host)
 
 	//Read the authorization header
 	authHeader := r.Header.Get("Authorization")
@@ -455,6 +455,29 @@ func refreshToken(w http.ResponseWriter, r *http.Request){
 	}
 }
 
+func updateEmployeeToAdmin(w http.ResponseWriter, r *http.Request){
+	lib.TerminalLogger.Trace("Upgrading an employee to admin from: ", r.Host)
+	lib.DocuLogger.Trace("Upgrading an employee to admin from: ", r.Host)
+
+	//Read the authorization header
+	authHeader := r.Header.Get("Authorization")
+
+	//Check if the token is valid
+	if ok, response := VerifyTokenIsFromAdmin(authHeader); !ok {
+		lib.TerminalLogger.Trace("Someone is trying to retrieve employee's data with an invalid token")
+		lib.DocuLogger.Trace("Someone is trying to retrieve appointments with an invalid token")
+		setAnswer(response, w, http.StatusNotAcceptable)
+	} else {
+		if ok, reqBody := readBody(r); !ok {
+			setAnswer(map[string]interface{}{"state": "Imposible leer la información"} ,w, http.StatusInternalServerError)
+		} else if ok, response := UpdateEmployee(reqBody); !ok {
+			setAnswer(response, w, http.StatusPreconditionFailed)
+		} else {
+			setAnswer(response, w, http.StatusAccepted)
+		}
+	}
+}
+
 func setAnswer(response map[string]interface{}, w http.ResponseWriter, state int){
 	w.WriteHeader(state)
 	_ = json.NewEncoder(w).Encode(response)
@@ -495,12 +518,12 @@ func main() {
 	router.HandleFunc("/update-exercise", updateExercises).Methods(http.MethodPut, http.MethodOptions)*/
 	router.HandleFunc("/delete-appointment", deleteAppointment).Methods(http.MethodDelete, http.MethodOptions)
 	router.HandleFunc("/delete-exercise", deleteExercise).Methods(http.MethodDelete, http.MethodOptions)
-	router.HandleFunc("/get-clinical-background", getClinicalBackground).Methods(http.MethodGet, http.MethodOptions)
+	router.HandleFunc("/get-clinical-background", getClinicalBackground).Methods(http.MethodPost, http.MethodOptions)
 	router.HandleFunc("/update-clinical-background", updateClinicalBackground).Methods(http.MethodPatch, http.MethodOptions)
 	router.HandleFunc("/get-all-employees", getAllEmployees).Methods(http.MethodGet, http.MethodOptions)
 	router.HandleFunc("/get-all-patients", getAllPatients).Methods(http.MethodGet, http.MethodOptions)
 	router.HandleFunc("/refresh-token", refreshToken).Methods(http.MethodGet, http.MethodOptions)
-
+	router.HandleFunc("/update-employee-to-admin", updateEmployeeToAdmin).Methods(http.MethodPatch, http.MethodOptions)
 
 
 	handler := c.Handler(router)

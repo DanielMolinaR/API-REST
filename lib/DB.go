@@ -203,8 +203,8 @@ func DoUpdateExpTime(sqlStatement, newExpTime, uuid string) bool{
 	return true
 }
 
-func InsertNewUserQuery(sqlStatement, dni, email, name, phone string) bool {
-	_, err := db.Exec(context.Background(), sqlStatement, dni, email, name, phone)
+func InsertNewUserQuery(sqlStatement, dni, email, name, phone, surname string) bool {
+	_, err := db.Exec(context.Background(), sqlStatement, dni, email, name, phone, surname)
 	if err != nil {
 		TerminalLogger.Error("Something went wrong inserting the new random user", err)
 		DocuLogger.Error("Something went wrong inserting the new random user", err)
@@ -307,4 +307,14 @@ func UpdateClinicalBackgroundQuery(sqlStatement, dni string, data structures.Cli
 		return false
 	}
 	return true
+}
+
+func DoEmployeeUpgrade(sqlStatement, dni string) (bool, map[string]interface{}){
+	_, err := db.Exec(context.Background(), sqlStatement, dni)
+	if err != nil {
+		TerminalLogger.Error("Something went wrong upgrading the employee", err)
+		DocuLogger.Error("Something went wrong upgrading the employee", err)
+		return false, map[string]interface{}{"state": "No se ha podido dar permisos de administrador al empleado"}
+	}
+	return true, map[string]interface{}{"state": ""}
 }

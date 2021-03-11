@@ -85,7 +85,8 @@ func doPatientUpdateAndInsert(patient structures.Patient) (bool, string) {
 
 func createClinicalBackground(dni string) bool {
 	var data structures.ClinicalBackgroundData
-	sqlStatement := "INSERT INTO ClinicalBackground (dni_patients, clinical_background_data) VALUES ($1, $2)"
+	sqlStatement := "INSERT INTO ClinicalBackground (clinical_background_dni_patients, clinical_background_data) VALUES ($1, $2)"
+	data.Patient_dni = dni
 	return DoInsertClinicalbackgroundQuery(sqlStatement, dni, data)
 }
 
@@ -126,10 +127,10 @@ func getEmailFromUuid(uuid string) string {
 	return DoSelectOneString(sqlStatement, uuid)
 }
 
-func insertNewRandomUser(dni, name, email, phone string) bool{
-	sqlStatement := "INSERT INTO Patients (dni, email, name, phone) " +
-		"VALUES ($1, $2, $3, $4)"
-	return InsertNewUserQuery(sqlStatement, dni, email, name, phone)
+func insertNewRandomUser(dni, name, email, phone, surname string) bool{
+	sqlStatement := "INSERT INTO Patients (dni, email, name, phone, surname) " +
+		"VALUES ($1, $2, $3, $4, $5)"
+	return InsertNewUserQuery(sqlStatement, dni, email, name, phone, surname)
 }
 
 func insertAppointment( date, employee_dni, patient_dni string) bool{
@@ -151,14 +152,15 @@ func checkIfAvailable(condition, dni, date, table string) bool{
 
 func getAppointmentsFromDB(dni string) (bool, pgx.Rows) {
 	actualDate := time.Now()
-	sqlStatement := "SELECT EXTRACT('epoch' from date_time), employee.name AS employee_name, patients.name AS patient_name FROM " +
-		"appointments, employee, patients WHERE (appointments.dni_employee = $1 or appointments.dni_patients = $1) " +
+	sqlStatement := "SELECT EXTRACT('epoch' from date_time), employee.name AS employee_name, employee.surname AS employee_surname, patients.name AS patient_name," +
+		" patients.surname AS patient_surname FROM appointments, employee, patients WHERE (appointments.dni_employee = $1 or appointments.dni_patients = $1) " +
 		"AND (appointments.dni_employee = employee.dni) AND (appointments.dni_patients =  patients.dni) and date_time > $2"
 	return GetRowsFromADniQuery(sqlStatement, dni, actualDate.String()[:19])
 }
 
 func getAllAppointmentsFromDB() (bool, pgx.Rows) {
-	sqlStatement := "SELECT EXTRACT('epoch' from date_time), employee.name AS employee_name, patients.name AS patient_name FROM " +
+	sqlStatement := "SELECT EXTRACT('epoch' from date_time), employee.name AS employee_name, employee.surname AS employee_surname, patients.name AS patient_name," +
+		" patients.surname AS patient_surname  FROM " +
 		"appointments, employee, patients WHERE (appointments.dni_employee = employee.dni) AND (appointments.dni_patients =  patients.dni)"
 	return GetRowsFromQuery(sqlStatement)
 }
@@ -177,7 +179,8 @@ func getAppointmentsDataFromRows(rows pgx.Rows) map[string]map[string]interface{
 	for rows.Next() {
 
 		var date int64
-		err := rows.Scan(&date, &appointmentDataResponse.Employee_name, &appointmentDataResponse.Patient_name)
+		err := rows.Scan(&date, &appointmentDataResponse.Employee_name, &appointmentDataResponse.Employee_surname, &appointmentDataResponse.Patient_name,
+			&appointmentDataResponse.Patient_surname)
 		if err != nil {
 			fmt.Println(err)
 			return appointments
@@ -187,8 +190,8 @@ func getAppointmentsDataFromRows(rows pgx.Rows) map[string]map[string]interface{
 			dateAsSomething.Second(), 0, time.UTC)
 		appointmentDataResponse.Date = finalDate.String()[:20]
 		rowsCount += 1
-		appointments["Cita " + strconv.Itoa(rowsCount)] = map[string]interface{}{"date": appointmentDataResponse.Date, "Patient_name": appointmentDataResponse.Patient_name,
-			"Employee_name": appointmentDataResponse.Employee_name}
+		appointments["Cita " + strconv.Itoa(rowsCount)] = map[string]interface{}{"date": appointmentDataResponse.Date, "Patient_name": appointmentDataResponse.Patient_name + " " + appointmentDataResponse.Patient_surname,
+			"Employee_name": appointmentDataResponse.Employee_name + " " + appointmentDataResponse.Employee_surname}
 
 	}
 
@@ -239,9 +242,9 @@ func deleteExerciseFromDB(dni, date string) bool{
 	return DeleteExerciseQuery(sqlStatement, dni, date)
 }
 
-func getClinicalBackground(data structures.ClinicalBackgroundData) (bool, structures.ClinicalBackgroundData) {
+func getClinicalBackground(dni string) (bool, structures.ClinicalBackgroundData) {
 	sqlStatement := "SELECT clinical_background_data FROM clinicalbackground WHERE (clinical_background_dni_patients = $1)"
-	return GetClinicalBackgroundQuery(sqlStatement, data.Patient_dni)
+	return GetClinicalBackgroundQuery(sqlStatement, dni)
 }
 
 func updateClinicalBackground(data structures.ClinicalBackgroundData) bool{
@@ -268,7 +271,7 @@ func getEmployeeDataFromRows(rows pgx.Rows) map[string]map[string]interface{} {
 			return employees
 		}
 		rowsCount += 1
-		employees["Empleado " + employeeDataResponse.User.Name] = map[string]interface{}{"DNI": employeeDataResponse.User.DNI,
+		employees["Empleado " + employeeDataResponse.User.DNI] = map[string]interface{}{"DNI": employeeDataResponse.User.DNI,
 				"Email": employeeDataResponse.User.Email, "Name": employeeDataResponse.User.Name, "Surname": employeeDataResponse.User.Surname,
 				"Phone": employeeDataResponse.User.Phone, "Active": employeeDataResponse.Active, "Admin": employeeDataResponse.Admin}
 
@@ -289,18 +292,21 @@ func getAllPatientsFromDB() (bool, pgx.Rows) {
 func getPatientDataFromRows(rows pgx.Rows) map[string]map[string]interface{} {
 	patients := make(map[string]map[string]interface{})
 
+	var birthdate time.Time
+
 	var patientDataResponse structures.Patient
 	rowsCount := 0
 	for rows.Next() {
 
 		err := rows.Scan(&patientDataResponse.User.DNI, &patientDataResponse.User.Email, &patientDataResponse.User.Name, &patientDataResponse.User.Surname,
-			&patientDataResponse.User.Phone, &patientDataResponse.Birthdate)
+			&patientDataResponse.User.Phone, &birthdate)
 		if err != nil {
 			fmt.Println(err)
 			return patients
 		}
+		patientDataResponse.Birthdate = birthdate.String()
 		rowsCount += 1
-		patients["Paciente " + patientDataResponse.User.Name] = map[string]interface{}{"DNI": patientDataResponse.User.DNI,
+		patients["Paciente " + patientDataResponse.User.DNI] = map[string]interface{}{"DNI": patientDataResponse.User.DNI,
 			"Email": patientDataResponse.User.Email, "Name": patientDataResponse.User.Name, "Surname": patientDataResponse.User.Surname,
 			"Phone": patientDataResponse.User.Phone, "Fecha de nacimiento": patientDataResponse.Birthdate}
 
@@ -327,4 +333,9 @@ func getAllApointmentsOfTheDay(employeeDni string) (bool, pgx.Rows) {
 		" WHERE (appointments.dni_employee = '" + employeeDni + "') AND (appointments.dni_patients = patients.dni)" +
 		"AND date_time between '" + beginDayString + "' and '" + endDayString + "'"
 	return GetRowsFromQuery(sqlStatement)
+}
+
+func upgradeEmployeeInTheDB(dni string) (bool, map[string]interface{}) {
+	sqlStatement := "UPDATE employee SET admin = true where dni = $1"
+	return DoEmployeeUpgrade(sqlStatement, dni)
 }
