@@ -339,3 +339,13 @@ func upgradeEmployeeInTheDB(dni string) (bool, map[string]interface{}) {
 	sqlStatement := "UPDATE employee SET admin = true where dni = $1"
 	return DoEmployeeUpgrade(sqlStatement, dni)
 }
+
+func doLayOff(dni string) (bool, map[string]interface{}) {
+	sqlStatement := "UPDATE employee SET active = false where dni = $1"
+	return DoEmployeeLayOff(sqlStatement, dni)
+}
+
+func doRenew(dni string) (bool, map[string]interface{}) {
+	sqlStatement := "UPDATE employee SET active = true where dni = $1"
+	return DoEmployeeRenew(sqlStatement, dni)
+}

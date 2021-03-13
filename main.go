@@ -478,6 +478,52 @@ func updateEmployeeToAdmin(w http.ResponseWriter, r *http.Request){
 	}
 }
 
+func layOffEmployee(w http.ResponseWriter, r *http.Request){
+	lib.TerminalLogger.Trace("Laying off an employee from: ", r.Host)
+	lib.DocuLogger.Trace("Laying off an employee from: ", r.Host)
+
+	//Read the authorization header
+	authHeader := r.Header.Get("Authorization")
+
+	//Check if the token is valid
+	if ok, response := VerifyTokenIsFromAdmin(authHeader); !ok {
+		lib.TerminalLogger.Trace("Someone is trying to retrieve employee's data with an invalid token")
+		lib.DocuLogger.Trace("Someone is trying to retrieve appointments with an invalid token")
+		setAnswer(response, w, http.StatusNotAcceptable)
+	} else {
+		if ok, reqBody := readBody(r); !ok {
+			setAnswer(map[string]interface{}{"state": "Imposible leer la información"} ,w, http.StatusInternalServerError)
+		} else if ok, response := LayOffMiddleware(reqBody); !ok{
+			setAnswer(response, w, http.StatusPreconditionFailed)
+		} else {
+			setAnswer(response, w, http.StatusAccepted)
+		}
+	}
+}
+
+func renewEmployee(w http.ResponseWriter, r *http.Request){
+	lib.TerminalLogger.Trace("Renewing an employee from: ", r.Host)
+	lib.DocuLogger.Trace("Renewing an employee from: ", r.Host)
+
+	//Read the authorization header
+	authHeader := r.Header.Get("Authorization")
+
+	//Check if the token is valid
+	if ok, response := VerifyTokenIsFromAdmin(authHeader); !ok {
+		lib.TerminalLogger.Trace("Someone is trying to retrieve employee's data with an invalid token")
+		lib.DocuLogger.Trace("Someone is trying to retrieve appointments with an invalid token")
+		setAnswer(response, w, http.StatusNotAcceptable)
+	} else {
+		if ok, reqBody := readBody(r); !ok {
+			setAnswer(map[string]interface{}{"state": "Imposible leer la información"} ,w, http.StatusInternalServerError)
+		} else if ok, response := RenewEmployeeMiddleware(reqBody); !ok{
+			setAnswer(response, w, http.StatusPreconditionFailed)
+		} else {
+			setAnswer(response, w, http.StatusAccepted)
+		}
+	}
+}
+
 func setAnswer(response map[string]interface{}, w http.ResponseWriter, state int){
 	w.WriteHeader(state)
 	_ = json.NewEncoder(w).Encode(response)
@@ -524,7 +570,8 @@ func main() {
 	router.HandleFunc("/get-all-patients", getAllPatients).Methods(http.MethodGet, http.MethodOptions)
 	router.HandleFunc("/refresh-token", refreshToken).Methods(http.MethodGet, http.MethodOptions)
 	router.HandleFunc("/update-employee-to-admin", updateEmployeeToAdmin).Methods(http.MethodPatch, http.MethodOptions)
-
+	router.HandleFunc("/lay-off-employee", layOffEmployee).Methods(http.MethodPatch, http.MethodOptions)
+	router.HandleFunc("/renew-employee", renewEmployee).Methods(http.MethodPatch, http.MethodOptions)
 
 	handler := c.Handler(router)
 	//router.Use(mux.CORSMethodMiddleware(handler))

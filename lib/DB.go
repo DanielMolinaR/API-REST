@@ -318,3 +318,23 @@ func DoEmployeeUpgrade(sqlStatement, dni string) (bool, map[string]interface{}){
 	}
 	return true, map[string]interface{}{"state": ""}
 }
+
+func DoEmployeeLayOff(sqlStatement, dni string) (bool, map[string]interface{}){
+	_, err := db.Exec(context.Background(), sqlStatement, dni)
+	if err != nil {
+		TerminalLogger.Error("Something went wrong laying off the employee", err)
+		DocuLogger.Error("Something went wrong lYING OFF the employee", err)
+		return false, map[string]interface{}{"state": "No se ha podido dar de baja al empleado"}
+	}
+	return true, map[string]interface{}{"state": "Empleado suspendido"}
+}
+
+func DoEmployeeRenew(sqlStatement, dni string) (bool, map[string]interface{}){
+	_, err := db.Exec(context.Background(), sqlStatement, dni)
+	if err != nil {
+		TerminalLogger.Error("Something went wrong renewing the employee", err)
+		DocuLogger.Error("Something went wrong renewing the employee", err)
+		return false, map[string]interface{}{"state": "No se ha podido renovar al empleado"}
+	}
+	return true, map[string]interface{}{"state": "Empleado Renovado"}
+}

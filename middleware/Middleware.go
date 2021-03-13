@@ -60,7 +60,7 @@ func VerifyDataAndSendUniqueEmail(reqBody []byte) (bool, map[string]interface{})
 		if !insertUuidExpTimeAndUserId(customUuid, "", userData.Email){
 			return false, map[string]interface{}{"state": "Imposible de generar el url unico"}
 		} else {
-			if ok, response := CreateVerificationEmail(customUuid, userData.Name, userData.Email,"employee-sign-up", 0); !ok{
+			if ok, response := CreateVerificationEmail(customUuid, userData.Name, userData.Email,"esign-up", 0); !ok{
 
 				//If the email has not been sent we delete the new row of the uuid for avoiding duplicate keys
 				DeleteUuidRow(customUuid)
@@ -466,7 +466,7 @@ func DeleteExerciseDataFromDni(token string, reqBody []byte) (bool, map[string]i
 		if !deleteExerciseFromDB(dni, date.DateTime) {
 			return false, map[string]interface{}{"state": "Ha habido algún problema encontrando el ejercicio a borrar"}
 		} else {
-			return true, map[string]interface{}{"State": "Ejercicio borrado"}
+			return true, map[string]interface{}{"state": "Ejercicio borrado"}
 		}
 	}
 }
@@ -504,7 +504,7 @@ func UpdateClinicalBackgroundMiddleware(reqBody []byte) (bool, map[string]interf
 		if !updateClinicalBackground(data) {
 			return false, map[string]interface{}{"state": "Ha habido algún problema actualizando los datos del historil clínico"}
 		} else {
-			return true, map[string]interface{}{"State": "Historial clínico actualizado"}
+			return true, map[string]interface{}{"state": "Historial clínico actualizado"}
 		}
 	}
 }
@@ -530,6 +530,12 @@ func UpdateEmployee(reqBody []byte) (bool, map[string]interface{}){
 
 	err := json.Unmarshal(reqBody, &data)
 
+	if err != nil{
+		lib.TerminalLogger.Error("Impossible to retrieve the data from the JSON")
+		lib.DocuLogger.Error("Impossible to retrieve the data from the JSON")
+		return false, map[string]interface{}{"state": "Problemas con la lectura de los datos"}
+	}
+
 	users, err := getEmployeesFromKeycloak()
 
 	if err != nil {
@@ -553,6 +559,36 @@ func upgradeEmployee(userDni, userId string) (bool, map[string]interface{}){
 	}
 
 	return updateEmployeeToAdmin(userId)
+}
+
+func LayOffMiddleware(reqBody []byte) (bool, map[string]interface{}){
+	var data Users
+
+	err := json.Unmarshal(reqBody, &data)
+
+	if err != nil{
+		lib.TerminalLogger.Error("Impossible to retrieve the data from the JSON")
+		lib.DocuLogger.Error("Impossible to retrieve the data from the JSON")
+		return false, map[string]interface{}{"state": "Problemas con la lectura de los datos"}
+	}
+
+	return doLayOff(data.DNI)
+
+}
+
+func RenewEmployeeMiddleware(reqBody []byte) (bool, map[string]interface{}){
+	var data Users
+
+	err := json.Unmarshal(reqBody, &data)
+
+	if err != nil{
+		lib.TerminalLogger.Error("Impossible to retrieve the data from the JSON")
+		lib.DocuLogger.Error("Impossible to retrieve the data from the JSON")
+		return false, map[string]interface{}{"state": "Problemas con la lectura de los datos"}
+	}
+
+	return doRenew(data.DNI)
+
 }
 
 func generateUUID() string {
