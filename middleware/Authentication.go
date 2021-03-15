@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"TFG/API-REST/lib"
+	"TFG/lib"
 	"fmt"
 	"github.com/dgrijalva/jwt-go/v4"
 	"strings"

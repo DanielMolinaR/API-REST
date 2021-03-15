@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"TFG/API-REST/lib"
+	"TFG/lib"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -26,7 +26,7 @@ var ctx context.Context
 
 func init() {
 
-	dataconfig, err := os.Open("./API-REST/middleware/keycloak.json")
+	dataconfig, err := os.Open("./middleware/keycloak.json")
 	if err != nil {
 		fmt.Println(err)
 	}

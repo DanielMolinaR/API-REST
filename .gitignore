@@ -295,8 +295,6 @@ $RECYCLE.BIN/
 
 # End of https://www.toptal.com/developers/gitignore/api/go,jetbrains+all,windows,react,vue,vuejs,linux,node
 
-*.json
-
 *.txt
 
 *.exe
