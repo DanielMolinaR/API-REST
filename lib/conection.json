@@ -1,0 +1,7 @@
+{
+    "Host": "ec2-52-213-167-210.eu-west-1.compute.amazonaws.com",
+    "Port": 5432,
+    "User": "uozawasiqrxtyu",
+    "Password": "ac8f1018a10b2d4df054a96096fbe0c008e89a45e4f7ee909283785dbb2e27a6",
+    "Database": "dd5bhfqt6rv117"
+}

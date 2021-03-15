@@ -1,0 +1,10 @@
+{
+  "ClientId": "front-end",
+  "BasePath": "http://localhost:8080",
+  "AdminName": "DaniM",
+  "AdminPwd": "admin",
+  "AdminRealm": "master",
+  "Secret": "0acd54f5-4232-4a21-b6e5-fed4a5527835",
+  "UserRealm": "Physiotherapy"
+
+}
