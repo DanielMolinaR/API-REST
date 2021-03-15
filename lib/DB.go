@@ -17,6 +17,7 @@ type Conection struct{
 	User string `json:"User"`
 	Password string `json:"Password"`
 	Database string `json:"Database"`
+	Uri		 string `json:"Uri"`
 }
 
 var db *pgxpool.Pool
@@ -29,15 +30,15 @@ func init() {
 	jsonBody, _ := ioutil.ReadAll(dataconfig)
 	var conection Conection
 	json.Unmarshal(jsonBody, &conection)
-	//Set the params to connect to the DB
+	/*//Set the params to connect to the DB
 	config, _ := pgxpool.ParseConfig("")
 	config.ConnConfig.Host = conection.Host
 	config.ConnConfig.Port = conection.Port
 	config.ConnConfig.User = conection.User
 	config.ConnConfig.Password = conection.Password
-	config.ConnConfig.Database = conection.Database
+	config.ConnConfig.Database = conection.Database*/
 	//Create the connection pool
-	db, err = pgxpool.ConnectConfig(context.Background(), config)
+	db, err := pgxpool.Connect(context.Background(), conection.Uri)
 	if err != nil {
 		fmt.Println(err)
 	}
