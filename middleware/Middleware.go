@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"TFG/API-REST/lib"
-	. "TFG/API-REST/structures"
+	"TFG/lib"
+	. "TFG/structures"
 	"encoding/json"
 	"github.com/google/uuid"
 	"strconv"

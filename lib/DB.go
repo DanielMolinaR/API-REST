@@ -1,7 +1,7 @@
 package lib
 
 import (
-	"TFG/API-REST/structures"
+	"TFG/structures"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -22,7 +22,7 @@ type Conection struct{
 var db *pgxpool.Pool
 
 func init() {
-	dataconfig, err := os.Open("./API-REST/lib/conection.json")
+	dataconfig, err := os.Open("./lib/conection.json")
 	if err != nil {
 		fmt.Println(err)
 	}

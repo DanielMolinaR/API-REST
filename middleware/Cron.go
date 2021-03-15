@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"TFG/API-REST/structures"
+	"TFG/structures"
 	"github.com/robfig/cron/v3"
 	"strconv"
 )

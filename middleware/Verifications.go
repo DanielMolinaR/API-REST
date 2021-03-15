@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"TFG/API-REST/lib"
-	"TFG/API-REST/structures"
+	"TFG/lib"
+	"TFG/structures"
 	"github.com/badoux/checkmail"
 	"strconv"
 	"time"
