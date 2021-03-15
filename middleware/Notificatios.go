@@ -92,7 +92,7 @@ func sendEmail(name, url, email string, condition int) bool {
 
 	switch condition{
 	case 0: //Case where the email is sent for the SignUp of a new employee
-		err := r.ParseTemplate("C:/Users/Daniel/go/src/TFG/middleware/Employee_signUp_template.html", templateData)
+		err := r.ParseTemplate("./middleware/Employee_signUp_template.html", templateData)
 		if err != nil {
 			lib.TerminalLogger.Error("Problems parsing the tempalte: " + err.Error())
 			lib.DocuLogger.Error("Problems parsing the tempalte: " + err.Error())
@@ -100,7 +100,7 @@ func sendEmail(name, url, email string, condition int) bool {
 		}
 		break;
 	case 1: //Case where the email is sent for verify the email address of the user
-		err := r.ParseTemplate("C:/Users/Daniel/go/src/TFG/middleware/Email_verification_template.html", templateData)
+		err := r.ParseTemplate("./middleware/Email_verification_template.html", templateData)
 		if err != nil {
 			lib.TerminalLogger.Error("Problems parsing the tempalte: " + err.Error())
 			lib.DocuLogger.Error("Problems parsing the tempalte: " + err.Error())
@@ -161,7 +161,7 @@ func sendReminder(header, data, day, hour, url, email string, month int) bool {
 
 	r := NewRequest(emailToSend, "BIENVENIDO", "")
 
-	err := r.ParseTemplate("C:/Users/Daniel/go/src/TFG/middleware/Reminder_template.html", templateData)
+	err := r.ParseTemplate("./middleware/Reminder_template.html", templateData)
 	if err != nil {
 		lib.TerminalLogger.Error("Problems parsing the tempalte: " + err.Error())
 		lib.DocuLogger.Error("Problems parsing the tempalte: " + err.Error())
@@ -218,7 +218,7 @@ func sendNotification(header, data, day, hour, url, email string, month int) boo
 
 	r := NewRequest(emailToSend, "BIENVENIDO", "")
 
-	err := r.ParseTemplate("C:/Users/Daniel/go/src/TFG/middleware/Notification_template.html", templateData)
+	err := r.ParseTemplate("./middleware/Notification_template.html", templateData)
 	if err != nil {
 		lib.TerminalLogger.Error("Problems parsing the tempalte: " + err.Error())
 		lib.DocuLogger.Error("Problems parsing the tempalte: " + err.Error())

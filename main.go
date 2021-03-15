@@ -570,7 +570,7 @@ func main() {
 	router.HandleFunc("/refresh-token", refreshToken).Methods(http.MethodGet, http.MethodOptions)
 	router.HandleFunc("/update-employee-to-admin", updateEmployeeToAdmin).Methods(http.MethodPatch, http.MethodOptions)
 	router.HandleFunc("/lay-off-employee", layOffEmployee).Methods(http.MethodPatch, http.MethodOptions)
-	router.HandleFunc("/renew-employee", renewEmployee).Methods(http.MethodPatch, http.MethodOptions) 
+	router.HandleFunc("/renew-employee", renewEmployee).Methods(http.MethodPatch, http.MethodOptions)
 
 	handler := c.Handler(router)
 	//router.Use(mux.CORSMethodMiddleware(handler))
