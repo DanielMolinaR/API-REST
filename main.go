@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -571,9 +572,11 @@ func main() {
 	router.HandleFunc("/lay-off-employee", layOffEmployee).Methods(http.MethodPatch, http.MethodOptions)
 	router.HandleFunc("/renew-employee", renewEmployee).Methods(http.MethodPatch, http.MethodOptions)
 
+	port := os.Getenv("PORT")
+
 	handler := c.Handler(router)
 	//router.Use(mux.CORSMethodMiddleware(handler))
-	log.Fatal(http.ListenAndServe("localhost:3000", handler))
+	log.Fatal(http.ListenAndServe(":" + port, handler))
 }
 
 
