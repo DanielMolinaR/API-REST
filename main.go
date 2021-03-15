@@ -572,9 +572,18 @@ func main() {
 	router.HandleFunc("/lay-off-employee", layOffEmployee).Methods(http.MethodPatch, http.MethodOptions)
 	router.HandleFunc("/renew-employee", renewEmployee).Methods(http.MethodPatch, http.MethodOptions)
 
+	port := os.Getenv("PORT")
+	var url string
+
+	if port != "" {
+		url =  ":" + port
+	} else{
+		url = ":3000"
+	}
+
 	handler := c.Handler(router)
 	//router.Use(mux.CORSMethodMiddleware(handler))
-	log.Fatal(http.ListenAndServe(":" + os.Getenv("PORT"), handler))
+	log.Fatal(http.ListenAndServe(url, handler))
 }
 
 

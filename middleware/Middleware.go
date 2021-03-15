@@ -31,7 +31,12 @@ func UsersLogin(reqBody []byte) (bool, map[string]interface{}) {
 		//the name of the user, the tokens and the role
 		lib.TerminalLogger.Trace("User logged in with the DNI: ******", userToLogIn.DNI[6:])
 		lib.DocuLogger.Trace("User logged in with the DNI: ******", userToLogIn.DNI[6:])
-		_, name := getStringFromField("users", "name", "dni", userToLogIn.DNI)
+		err, name := getStringFromField("users", "name", "dni", userToLogIn.DNI)
+		if (!err){
+			lib.TerminalLogger.Error("Impossible to retrieve the name from the DB")
+			lib.DocuLogger.Error("Impossible to retrieve the name from the DB")
+			return false, map[string]interface{}{"state": "Problemas con el inicio de sesión"}
+		}
 		return true, map[string]interface{}{"state": "Sesión iniciada", "accessToken": accessToken,
 			"refreshToken": refreshToken, "role": getTheRole(accessToken), "email": getEmail(accessToken), "userName": name}
 	}
