@@ -1,7 +1,7 @@
 {
-    "Host": "ec2-52-213-167-210.eu-west-1.compute.amazonaws.com",
+    "Host": "ec2-34-252-251-16.eu-west-1.compute.amazonaws.com",
     "Port": 5432,
-    "User": "uozawasiqrxtyu",
-    "Password": "ac8f1018a10b2d4df054a96096fbe0c008e89a45e4f7ee909283785dbb2e27a6",
-    "Database": "dd5bhfqt6rv117"
+    "User": "drbhqrenjpzobv",
+    "Password": "f4d4010a07d6055a94dbe6deb0e389841a014bd0e38359fb49287f9b9e73b627",
+    "Database": "dej6m8ehk47kvq"
 }
