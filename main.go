@@ -115,8 +115,8 @@ func employeeSignUp(w http.ResponseWriter,r *http.Request){
 }
 
 func patientSignUp(w http.ResponseWriter,r *http.Request){
-	lib.TerminalLogger.Trace("Verifying an email from: ", r.Host)
-	lib.DocuLogger.Trace("Verifying an email from: ", r.Host)
+	lib.TerminalLogger.Trace("Creating an patient from: ", r.Host)
+	lib.DocuLogger.Trace("Creating an patient from: ", r.Host)
 
 	if ok, reqBody := readBody(r); !ok {
 		setAnswer(map[string]interface{}{"state": "Imposible leer la información"} ,w, http.StatusInternalServerError)
