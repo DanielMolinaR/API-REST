@@ -30,15 +30,9 @@ func init() {
 	jsonBody, _ := ioutil.ReadAll(dataconfig)
 	var conection Conection
 	json.Unmarshal(jsonBody, &conection)
-	/*//Set the params to connect to the DB
-	config, _ := pgxpool.ParseConfig("")
-	config.ConnConfig.Host = conection.Host
-	config.ConnConfig.Port = conection.Port
-	config.ConnConfig.User = conection.User
-	config.ConnConfig.Password = conection.Password
-	config.ConnConfig.Database = conection.Database*/
+
 	//Create the connection pool
-	db, err := pgxpool.Connect(context.Background(), conection.Uri)
+	db, err = pgxpool.Connect(context.Background(), conection.Uri)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -67,21 +61,6 @@ func SelectQuery(sqlStatement, data string) (bool) {
 	return true
 }
 
-func SelectEmployeeDataQuery(sqlStatement, data string) structures.Employee {
-	var employee structures.Employee
-	//Do the query and if It's correct
-	//It means that the password is saved
-	err := db.QueryRow(context.Background(), sqlStatement, data).Scan(&employee.User.DNI, &employee.User.Name, &employee.User.Email,
-		&employee.User.Phone, &employee.User.Surname, &employee.Active, employee.Admin)
-	if err != nil {
-		TerminalLogger.Error("Error with the query:", err)
-		DocuLogger.Error("Error with the query:", err)
-		return employee
-	}
-
-	return employee
-}
-
 func InsertEmployeeQuery(sqlStatement string, employee structures.Employee) (bool){
 	_, err := db.Exec(context.Background(), sqlStatement, employee.Active, employee.Admin, employee.User.DNI,
 		employee.User.Email, employee.User.Name, employee.User.Surname, employee.User.Phone)
@@ -96,9 +75,9 @@ func InsertEmployeeQuery(sqlStatement string, employee structures.Employee) (boo
 func SelectStringQuery(sqlStatement, data string) (bool, string){
 	var response string
 
-	rows := db.QueryRow(context.Background(), sqlStatement, data).Scan(&response)
-	if rows != nil {
-		return false, ""
+	err := db.QueryRow(context.Background(), sqlStatement, data).Scan(&response)
+	if err != nil {
+		return false, " "
 	}
 	TerminalLogger.Warn("The data has been found in the DDBB")
 	DocuLogger.Warn("The data has been found in the DDBB")
