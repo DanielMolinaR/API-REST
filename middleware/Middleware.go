@@ -170,7 +170,7 @@ func PatientSignUpVerification(reqBody []byte) (bool, map[string]interface{}){
 				}
 			} else {
 
-				//The email doesnt exist in the DB so we do the insert and send the verification email after verificating all the data
+				//The email doesnt exist in the DB so we do the insert and send the verification email after the verification of all the data
 				ok, response := userDataVerifications(newPatient.User.DNI, newPatient.User.Phone, newPatient.User.Email, newPatient.User.Password)
 				if !ok {
 					return false, response
@@ -197,7 +197,12 @@ func insertPatientAndSendEmail(newPatient Patient) (bool, map[string]interface{}
 		if !insertUuidExpTimeAndUserId(EmailUuid, id, newPatient.User.Email){
 			return false, map[string]interface{}{"state": "Imposible de generar el url para la verificación del correo"}
 		} else {
-			if ok, response := CreateVerificationEmail(EmailUuid, newPatient.User.Name, newPatient.User.Email,"email-verification", 1); !ok{
+			if !createClinicalBackground(newPatient.User.DNI){
+				//Delete the user from the DB and from Keycloak
+				DeleteUserStatement(newPatient.User.DNI)
+				DeleteKeycloakUser(id)
+				return false, map[string]interface{}{"state": "No se ha podido terminar con el registro"}
+			} else if ok, response := CreateVerificationEmail(EmailUuid, newPatient.User.Name, newPatient.User.Email,"email-verification", 1); !ok{
 
 				//If the email has not been sent we delete the new row of the uuid for avoiding duplicate keys
 				DeleteUuidRow(EmailUuid)
@@ -487,9 +492,9 @@ func GetClinicalBackgroundMiddleware(reqBody []byte) (bool, map[string]interface
 		return false, map[string]interface{}{"state": "Problemas con la lectura de los datos"}
 	} else {
 		if ok, dni := getStringFromField("patients", "dni", "email", data.Email); !ok{
-			return false, map[string]interface{}{"state": "Ha habido algún problema al recuperar los datos del historil clínico"}
+			return false, map[string]interface{}{"state": "Ha habido algún problema al recuperar los datos del historial clínico"}
 		} else if ok, clinicalData := getClinicalBackground(dni); !ok {
-			return false, map[string]interface{}{"state": "Ha habido algún problema al recuperar los datos del historil clínico"}
+			return false, map[string]interface{}{"state": "Ha habido algún problema al recuperar los datos del historial clínico"}
 		} else {
 			return true, map[string]interface{}{"Data": clinicalData}
 		}
