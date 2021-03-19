@@ -357,7 +357,7 @@ func saveAppointmentAndSendNotification(patient_id, employee_dni, date string, a
 		_, employee_name := getStringFromField("employee", "name", "dni", employee_dni)
 		ok := sendNotification("Cita fisioterapia", "Tienes una cita pendiente con " + employee_name,
 			strconv.Itoa(appointmentData.Day), strconv.Itoa(appointmentData.Hour) + ":" + minute,
-			"http://localhost:8081/calendar", appointmentData.Patient_email, appointmentData.Month)
+			"https://clinica-fortia.netlify.app/calendar", appointmentData.Patient_email, appointmentData.Month)
 		if ok {
 			lib.TerminalLogger.Trace("The notification has been sent")
 			lib.DocuLogger.Trace("The notification has been sent")
@@ -403,7 +403,7 @@ func saveExerciseAndSendNotification(patient_dni string, date string, exerciseDa
 		}
 		ok := sendNotification("Ejercicio pendiente: " + exerciseData.Exercise_name, exerciseData.Description,
 			strconv.Itoa(exerciseData.Day), strconv.Itoa(exerciseData.Hour) + ":" + minute,
-			"http://localhost:8081/calendar", exerciseData.Patient_email, exerciseData.Month)
+			"https://clinica-fortia.netlify.app/calendar", exerciseData.Patient_email, exerciseData.Month)
 		if ok {
 			lib.TerminalLogger.Trace("The reminder has been sent")
 			lib.DocuLogger.Trace("The reminder has been sent")
