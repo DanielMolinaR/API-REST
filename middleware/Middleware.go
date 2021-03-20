@@ -189,7 +189,7 @@ func insertPatientAndSendEmail(newPatient Patient) (bool, map[string]interface{}
 
 	//As all the data is correct we insert the user
 	if ok, id := doPatientInsert(newPatient); !ok {
-		return false, map[string]interface{}{"state": "Imposible añadir el usuario en la BBDD"}
+		return false, map[string]interface{}{"state": "Imposible realizar el registro del usuario"}
 	} else {
 
 		//if the user has been created we must wait for the email verification so we send the email with a verification URL
