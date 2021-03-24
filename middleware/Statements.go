@@ -186,7 +186,7 @@ func getAppointmentsDataFromRows(rows pgx.Rows) map[string]map[string]interface{
 			return appointments
 		}
 		dateAsSomething := time.Unix(date, 0)
-		finalDate := time.Date(dateAsSomething.Year(), dateAsSomething.Month(), dateAsSomething.Day(), dateAsSomething.Hour() + 1, dateAsSomething.Minute(),
+		finalDate := time.Date(dateAsSomething.Year(), dateAsSomething.Month(), dateAsSomething.Day(), dateAsSomething.Hour(), dateAsSomething.Minute(),
 			dateAsSomething.Second(), 0, time.UTC)
 		appointmentDataResponse.Date = finalDate.String()[:20]
 		rowsCount += 1
@@ -216,7 +216,7 @@ func getExercisesDataFromRows(rows pgx.Rows) map[string]map[string]interface{} {
 			return exercises
 		}
 		dateAsSomething := time.Unix(date, 0)
-		finalDate := time.Date(dateAsSomething.Year(), dateAsSomething.Month(), dateAsSomething.Day(), dateAsSomething.Hour() + 1, dateAsSomething.Minute(),
+		finalDate := time.Date(dateAsSomething.Year(), dateAsSomething.Month(), dateAsSomething.Day(), dateAsSomething.Hour(), dateAsSomething.Minute(),
 			dateAsSomething.Second(), 0, time.UTC)
 		exerciseDataResponse.Date = finalDate.String()[:20]
 		rowsCount += 1
