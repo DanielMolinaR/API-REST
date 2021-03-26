@@ -496,7 +496,7 @@ func GetClinicalBackgroundMiddleware(reqBody []byte) (bool, map[string]interface
 		} else if ok, clinicalData := getClinicalBackground(dni); !ok {
 			return false, map[string]interface{}{"state": "Ha habido algún problema al recuperar los datos del historial clínico"}
 		} else {
-			return true, map[string]interface{}{"Data": clinicalData}
+			return true, map[string]interface{}{"Name": getStringFromField("patients", "name", "email", data.Email),"Data": clinicalData}
 		}
 	}
 }
