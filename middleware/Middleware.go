@@ -304,7 +304,7 @@ func AppointmentMiddleware(reqBody []byte) (bool, map[string]interface{}){
 
 			answer, patient_id := getStringFromField("patients", "dni", "email", appointmentData.Patient_email)
 
-			if (!answer && patient_id=="") {
+			if (!answer && patient_id==" ") {
 				//generate a random id for the patient as dni
 				patient_uuid := "Usuario nuevo: " + generateUUID()
 
