@@ -1,1 +1,1 @@
-web: bin/go-clinica-fortia
+web: bin/TFG

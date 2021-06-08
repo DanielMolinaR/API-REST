@@ -68,12 +68,13 @@ func doPatientInsert(patient structures.Patient) (bool, string) {
 }
 
 func doPatientUpdateAndInsert(patient structures.Patient) (bool, string) {
-
+	//As this type of user exist in the DB we must created in keyclaok
 	if ok, userid := createKeycloakUser(patient.User.DNI, patient.User.Password, patient.User.Email, "PATIENT_ROLE"); !ok{
 		return false, ""
 	} else{
 		sqlStatement := "UPDATE Patients SET birthdate = $1, dni = $2, email = $3, name = $4, surname = $5, phone = $6 " +
 			"WHERE email = $7"
+		//As the user couldn't be updated in the DB It must be deleted in keycloak
 		if !UpdatePatientQuery(sqlStatement, patient){
 			DeleteKeycloakUser(userid)
 			return false, ""
@@ -114,7 +115,7 @@ func DeleteUuidRow(uuid string) {
 func UpdateExpTimeFromUuid(uuid string) bool {
 	sqlStatement := "UPDATE UniqueUrl SET expiration_date = $1 WHERE (uuid = $2)"
 	expTime := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day() + 3, time.Now().Hour(), time.Now().Minute(), time.Now().Second(),0, time.UTC)
-	 return DoUpdateExpTime(sqlStatement, expTime.String()[:20], uuid)
+ 	return DoUpdateExpTime(sqlStatement, expTime.String()[:20], uuid)
 }
 
 func getUserIdFromUuid(uuid string) string {
@@ -155,6 +156,7 @@ func getAppointmentsFromDB(dni string) (bool, pgx.Rows) {
 	sqlStatement := "SELECT EXTRACT('epoch' from date_time), employee.name AS employee_name, employee.surname AS employee_surname, patients.name AS patient_name," +
 		" patients.surname AS patient_surname FROM appointments, employee, patients WHERE (appointments.dni_employee = $1 or appointments.dni_patients = $1) " +
 		"AND (appointments.dni_employee = employee.dni) AND (appointments.dni_patients =  patients.dni) and date_time > $2"
+	//We get all the appointments from an user from today on
 	return GetRowsFromADniQuery(sqlStatement, dni, actualDate.String()[:19])
 }
 
@@ -162,16 +164,19 @@ func getAllAppointmentsFromDB() (bool, pgx.Rows) {
 	sqlStatement := "SELECT EXTRACT('epoch' from date_time), employee.name AS employee_name, employee.surname AS employee_surname, patients.name AS patient_name," +
 		" patients.surname AS patient_surname  FROM " +
 		"appointments, employee, patients WHERE (appointments.dni_employee = employee.dni) AND (appointments.dni_patients =  patients.dni)"
+	//We get all the appointments from all the employees from today on
 	return GetRowsFromQuery(sqlStatement)
 }
 
 func getExercisesFromDB(dni string) (bool, pgx.Rows) {
 	actualDate := time.Now()
 	sqlStatement := "SELECT EXTRACT('epoch' from exercise_date_time), description, name FROM Exercise WHERE dni_patients = $1 and exercise_date_time > $2"
+	//We get all the exercises from an user from today on
 	return GetRowsFromADniQuery(sqlStatement, dni, actualDate.String()[:19])
 }
 
 func getAppointmentsDataFromRows(rows pgx.Rows) map[string]map[string]interface{} {
+	//Given the rows of the table of appointments we read them
 	appointments := make(map[string]map[string]interface{})
 
 	var appointmentDataResponse structures.AppointmentResponse
@@ -182,14 +187,17 @@ func getAppointmentsDataFromRows(rows pgx.Rows) map[string]map[string]interface{
 		err := rows.Scan(&date, &appointmentDataResponse.Employee_name, &appointmentDataResponse.Employee_surname, &appointmentDataResponse.Patient_name,
 			&appointmentDataResponse.Patient_surname)
 		if err != nil {
-			fmt.Println(err)
+			TerminalLogger.Error("Something went wrong reading the appointment's rows: " + err.Error())
+			DocuLogger.Error("Something went wrong reading the appointment's rows: " + err.Error())
 			return appointments
 		}
+		//As we get the date as Unix type we create a variable of type Time for them parse it to a Date and finally to a string
 		dateAsSomething := time.Unix(date, 0)
 		finalDate := time.Date(dateAsSomething.Year(), dateAsSomething.Month(), dateAsSomething.Day(), dateAsSomething.Hour(), dateAsSomething.Minute(),
 			dateAsSomething.Second(), 0, time.UTC)
 		appointmentDataResponse.Date = finalDate.String()[:20]
 		rowsCount += 1
+		//For each row read we write it into the array of the appointments for the server response
 		appointments["Cita " + strconv.Itoa(rowsCount)] = map[string]interface{}{"date": appointmentDataResponse.Date, "Patient_name": appointmentDataResponse.Patient_name + " " + appointmentDataResponse.Patient_surname,
 			"Employee_name": appointmentDataResponse.Employee_name + " " + appointmentDataResponse.Employee_surname}
 
@@ -203,6 +211,7 @@ func getAppointmentsDataFromRows(rows pgx.Rows) map[string]map[string]interface{
 }
 
 func getExercisesDataFromRows(rows pgx.Rows) map[string]map[string]interface{} {
+	//Given the rows of the table of exercises we read them
 	exercises := make(map[string]map[string]interface{})
 
 	var exerciseDataResponse structures.ExercisesResponse
@@ -212,14 +221,17 @@ func getExercisesDataFromRows(rows pgx.Rows) map[string]map[string]interface{} {
 		var date int64
 		err := rows.Scan(&date, &exerciseDataResponse.Description, &exerciseDataResponse.Exercise_name)
 		if err != nil {
-			fmt.Println(err)
+			TerminalLogger.Error("Something went wrong reading the exercise's rows: " + err.Error())
+			DocuLogger.Error("Something went wrong reading the exercise's rows: " + err.Error())
 			return exercises
 		}
+		//As we get the date as Unix type we create a variable of type Time for them parse it to a Date and finally to a string
 		dateAsSomething := time.Unix(date, 0)
 		finalDate := time.Date(dateAsSomething.Year(), dateAsSomething.Month(), dateAsSomething.Day(), dateAsSomething.Hour(), dateAsSomething.Minute(),
 			dateAsSomething.Second(), 0, time.UTC)
 		exerciseDataResponse.Date = finalDate.String()[:20]
 		rowsCount += 1
+		//For each row read we write it into the array of the exercises for the server response
 		exercises["Ejercicio " + strconv.Itoa(rowsCount)] = map[string]interface{}{"date": exerciseDataResponse.Date, "Description": exerciseDataResponse.Description,
 			"Name": exerciseDataResponse.Exercise_name}
 
@@ -258,6 +270,7 @@ func getAllEmployeesFromDB() (bool, pgx.Rows) {
 }
 
 func getEmployeeDataFromRows(rows pgx.Rows) map[string]map[string]interface{} {
+	//Given the rows of the table of employees we read them
 	employees := make(map[string]map[string]interface{})
 
 	var employeeDataResponse structures.Employee
@@ -267,10 +280,12 @@ func getEmployeeDataFromRows(rows pgx.Rows) map[string]map[string]interface{} {
 		err := rows.Scan(&employeeDataResponse.User.DNI, &employeeDataResponse.User.Email, &employeeDataResponse.User.Name, &employeeDataResponse.User.Surname,
 					&employeeDataResponse.User.Phone, &employeeDataResponse.Active, &employeeDataResponse.Admin)
 		if err != nil {
-			fmt.Println(err)
+			TerminalLogger.Error("Something went wrong reading the employee's rows: " + err.Error())
+			DocuLogger.Error("Something went wrong reading the employee's rows: " + err.Error())
 			return employees
 		}
 		rowsCount += 1
+		//For each row read we write it into the array of the employees for the server response
 		employees["Empleado " + employeeDataResponse.User.DNI] = map[string]interface{}{"DNI": employeeDataResponse.User.DNI,
 				"Email": employeeDataResponse.User.Email, "Name": employeeDataResponse.User.Name, "Surname": employeeDataResponse.User.Surname,
 				"Phone": employeeDataResponse.User.Phone, "Active": employeeDataResponse.Active, "Admin": employeeDataResponse.Admin}
@@ -290,6 +305,7 @@ func getAllPatientsFromDB() (bool, pgx.Rows) {
 }
 
 func getPatientDataFromRows(rows pgx.Rows) map[string]map[string]interface{} {
+	//Given the rows of the table of employees we read them
 	patients := make(map[string]map[string]interface{})
 
 	var birthdate time.Time
@@ -301,11 +317,13 @@ func getPatientDataFromRows(rows pgx.Rows) map[string]map[string]interface{} {
 		err := rows.Scan(&patientDataResponse.User.DNI, &patientDataResponse.User.Email, &patientDataResponse.User.Name, &patientDataResponse.User.Surname,
 			&patientDataResponse.User.Phone, &birthdate)
 		if err != nil {
-			fmt.Println(err)
+			TerminalLogger.Error("Something went wrong reading the patient's rows: " + err.Error())
+			DocuLogger.Error("Something went wrong reading the patient's rows: " + err.Error())
 			return patients
 		}
 		patientDataResponse.Birthdate = birthdate.String()
 		rowsCount += 1
+		//For each row read we write it into the array of the patients for the server response
 		patients["Paciente " + patientDataResponse.User.DNI] = map[string]interface{}{"DNI": patientDataResponse.User.DNI,
 			"Email": patientDataResponse.User.Email, "Name": patientDataResponse.User.Name, "Surname": patientDataResponse.User.Surname,
 			"Phone": patientDataResponse.User.Phone, "Fecha de nacimiento": patientDataResponse.Birthdate}
@@ -325,6 +343,7 @@ func getAllEmployeeDnis() (bool, pgx.Rows) {
 }
 
 func getAllApointmentsOfTheDay(employeeDni string) (bool, pgx.Rows) {
+	//Here we get all the appointment from today for the daily reminder to the employees
 	beginDay := now.BeginningOfDay()
 	endDay := now.EndOfDay()
 	beginDayString := beginDay.String()[:19]
@@ -341,11 +360,13 @@ func upgradeEmployeeInTheDB(dni string) (bool, map[string]interface{}) {
 }
 
 func doLayOff(dni string) (bool, map[string]interface{}) {
+	//Make an employee not to be able to work anymore
 	sqlStatement := "UPDATE employee SET active = false where dni = $1"
 	return DoEmployeeLayOff(sqlStatement, dni)
 }
 
 func doRenew(dni string) (bool, map[string]interface{}) {
+	//Make an employee to be able to work again
 	sqlStatement := "UPDATE employee SET active = true where dni = $1"
 	return DoEmployeeRenew(sqlStatement, dni)
 }

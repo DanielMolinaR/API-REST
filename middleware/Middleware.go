@@ -31,7 +31,12 @@ func UsersLogin(reqBody []byte) (bool, map[string]interface{}) {
 		//the name of the user, the tokens and the role
 		lib.TerminalLogger.Trace("User logged in with the DNI: ******", userToLogIn.DNI[6:])
 		lib.DocuLogger.Trace("User logged in with the DNI: ******", userToLogIn.DNI[6:])
-		_, name := getStringFromField("users", "name", "dni", userToLogIn.DNI)
+		err, name := getStringFromField("users", "name", "dni", userToLogIn.DNI)
+		if (!err){
+			lib.TerminalLogger.Error("Impossible to retrieve the name from the DB")
+			lib.DocuLogger.Error("Impossible to retrieve the name from the DB")
+			return false, map[string]interface{}{"state": "Problemas con el inicio de sesión"}
+		}
 		return true, map[string]interface{}{"state": "Sesión iniciada", "accessToken": accessToken,
 			"refreshToken": refreshToken, "role": getTheRole(accessToken), "email": getEmail(accessToken), "userName": name}
 	}
@@ -165,7 +170,7 @@ func PatientSignUpVerification(reqBody []byte) (bool, map[string]interface{}){
 				}
 			} else {
 
-				//The email doesnt exist in the DB so we do the insert and send the verification email after verificating all the data
+				//The email doesnt exist in the DB so we do the insert and send the verification email after the verification of all the data
 				ok, response := userDataVerifications(newPatient.User.DNI, newPatient.User.Phone, newPatient.User.Email, newPatient.User.Password)
 				if !ok {
 					return false, response
@@ -184,7 +189,7 @@ func insertPatientAndSendEmail(newPatient Patient) (bool, map[string]interface{}
 
 	//As all the data is correct we insert the user
 	if ok, id := doPatientInsert(newPatient); !ok {
-		return false, map[string]interface{}{"state": "Imposible añadir el usuario en la BBDD"}
+		return false, map[string]interface{}{"state": "Imposible realizar el registro del usuario"}
 	} else {
 
 		//if the user has been created we must wait for the email verification so we send the email with a verification URL
@@ -192,7 +197,12 @@ func insertPatientAndSendEmail(newPatient Patient) (bool, map[string]interface{}
 		if !insertUuidExpTimeAndUserId(EmailUuid, id, newPatient.User.Email){
 			return false, map[string]interface{}{"state": "Imposible de generar el url para la verificación del correo"}
 		} else {
-			if ok, response := CreateVerificationEmail(EmailUuid, newPatient.User.Name, newPatient.User.Email,"email-verification", 1); !ok{
+			if !createClinicalBackground(newPatient.User.DNI){
+				//Delete the user from the DB and from Keycloak
+				DeleteUserStatement(newPatient.User.DNI)
+				DeleteKeycloakUser(id)
+				return false, map[string]interface{}{"state": "No se ha podido terminar con el registro"}
+			} else if ok, response := CreateVerificationEmail(EmailUuid, newPatient.User.Name, newPatient.User.Email,"email-verification", 1); !ok{
 
 				//If the email has not been sent we delete the new row of the uuid for avoiding duplicate keys
 				DeleteUuidRow(EmailUuid)
@@ -294,7 +304,7 @@ func AppointmentMiddleware(reqBody []byte) (bool, map[string]interface{}){
 
 			answer, patient_id := getStringFromField("patients", "dni", "email", appointmentData.Patient_email)
 
-			if (!answer && patient_id=="") {
+			if (!answer && patient_id==" ") {
 				//generate a random id for the patient as dni
 				patient_uuid := "Usuario nuevo: " + generateUUID()
 
@@ -347,7 +357,7 @@ func saveAppointmentAndSendNotification(patient_id, employee_dni, date string, a
 		_, employee_name := getStringFromField("employee", "name", "dni", employee_dni)
 		ok := sendNotification("Cita fisioterapia", "Tienes una cita pendiente con " + employee_name,
 			strconv.Itoa(appointmentData.Day), strconv.Itoa(appointmentData.Hour) + ":" + minute,
-			"http://localhost:8081/calendar", appointmentData.Patient_email, appointmentData.Month)
+			"https://clinica-fortia.netlify.app/calendar", appointmentData.Patient_email, appointmentData.Month)
 		if ok {
 			lib.TerminalLogger.Trace("The notification has been sent")
 			lib.DocuLogger.Trace("The notification has been sent")
@@ -393,7 +403,7 @@ func saveExerciseAndSendNotification(patient_dni string, date string, exerciseDa
 		}
 		ok := sendNotification("Ejercicio pendiente: " + exerciseData.Exercise_name, exerciseData.Description,
 			strconv.Itoa(exerciseData.Day), strconv.Itoa(exerciseData.Hour) + ":" + minute,
-			"http://localhost:8081/calendar", exerciseData.Patient_email, exerciseData.Month)
+			"https://clinica-fortia.netlify.app/calendar", exerciseData.Patient_email, exerciseData.Month)
 		if ok {
 			lib.TerminalLogger.Trace("The reminder has been sent")
 			lib.DocuLogger.Trace("The reminder has been sent")
@@ -482,11 +492,12 @@ func GetClinicalBackgroundMiddleware(reqBody []byte) (bool, map[string]interface
 		return false, map[string]interface{}{"state": "Problemas con la lectura de los datos"}
 	} else {
 		if ok, dni := getStringFromField("patients", "dni", "email", data.Email); !ok{
-			return false, map[string]interface{}{"state": "Ha habido algún problema al recuperar los datos del historil clínico"}
+			return false, map[string]interface{}{"state": "Ha habido algún problema al recuperar los datos del historial clínico"}
 		} else if ok, clinicalData := getClinicalBackground(dni); !ok {
-			return false, map[string]interface{}{"state": "Ha habido algún problema al recuperar los datos del historil clínico"}
+			return false, map[string]interface{}{"state": "Ha habido algún problema al recuperar los datos del historial clínico"}
 		} else {
-			return true, map[string]interface{}{"Data": clinicalData}
+			_, name := getStringFromField("patients", "name", "email", data.Email)
+			return true, map[string]interface{}{"Name": name,"Data": clinicalData}
 		}
 	}
 }
