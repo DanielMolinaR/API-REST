@@ -13,6 +13,7 @@ require (
 	github.com/jinzhu/now v1.1.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/cors v1.7.0
+	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/withmandala/go-log v0.1.0
 	golang.org/x/crypto v0.0.0-20201012173705-84dcc777aaee // indirect
 )
