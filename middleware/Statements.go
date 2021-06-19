@@ -360,13 +360,13 @@ func upgradeEmployeeInTheDB(dni string) (bool, map[string]interface{}) {
 	return DoEmployeeUpgrade(sqlStatement, dni)
 }
 
-func doLayOff(dni string) (bool, map[string]interface{}) {
+func layOffEmployeeInTheDB(dni string) (bool, map[string]interface{}) {
 	//Make an employee not to be able to work anymore
 	sqlStatement := "UPDATE employee SET active = false, admin = false where dni = $1"
 	return DoEmployeeLayOff(sqlStatement, dni)
 }
 
-func doRenew(dni string) (bool, map[string]interface{}) {
+func renewEmployeeInTheDB(dni string) (bool, map[string]interface{}) {
 	//Make an employee to be able to work again
 	sqlStatement := "UPDATE employee SET active = true where dni = $1"
 	return DoEmployeeRenew(sqlStatement, dni)

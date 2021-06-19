@@ -583,8 +583,39 @@ func LayOffMiddleware(reqBody []byte) (bool, map[string]interface{}){
 		return false, map[string]interface{}{"state": "Problemas con la lectura de los datos"}
 	}
 
-	return doLayOff(data.DNI)
+	users, err := getEmployeesFromKeycloak()
 
+	if err != nil {
+		lib.TerminalLogger.Error("Impossible to retrieve the employees")
+		lib.DocuLogger.Error("Impossible to retrieve the employees")
+	}
+
+	admins, err := getAdminsFromKeycloak()
+
+	if err != nil {
+		lib.TerminalLogger.Error("Impossible to retrieve the admins")
+		lib.DocuLogger.Error("Impossible to retrieve the admins")
+	}
+
+	users = append(users, admins...)
+
+	var userId string
+	for _, user := range users{
+		if (*user.Username == data.DNI){
+			userId = *user.ID
+		}
+	}
+
+	return doLayOff(data.DNI, userId)
+
+}
+
+func doLayOff(userDni, userId string) (bool, map[string]interface{}){
+	if ok, response := layOffEmployeeInTheDB(userDni); !ok{
+		return ok, response
+	}
+
+	return layOffEmployee(userId)
 }
 
 func RenewEmployeeMiddleware(reqBody []byte) (bool, map[string]interface{}){
@@ -598,8 +629,29 @@ func RenewEmployeeMiddleware(reqBody []byte) (bool, map[string]interface{}){
 		return false, map[string]interface{}{"state": "Problemas con la lectura de los datos"}
 	}
 
-	return doRenew(data.DNI)
+	users, err := getEmployeesFromKeycloak()
 
+	if err != nil {
+		lib.TerminalLogger.Error("Impossible to retrieve the employees")
+		lib.DocuLogger.Error("Impossible to retrieve the employees")
+	}
+
+	var userId string
+	for _, user := range users{
+		if (*user.Username == data.DNI){
+			userId = *user.ID
+		}
+	}
+
+	return doRenew(data.DNI, userId)
+}
+
+func doRenew(userDni, userId string) (bool, map[string]interface{}){
+	if ok, response := renewEmployeeInTheDB(userDni); !ok{
+		return ok, response
+	}
+
+	return renewEmployee(userId)
 }
 
 func generateUUID() string {

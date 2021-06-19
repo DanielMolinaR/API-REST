@@ -129,37 +129,44 @@ func updateUserEnabled(userId string) bool {
 	}
 }
 
+func updateUserDisabled(userId string) bool {
+	user := gocloak.User{
+		ID: gocloak.StringP(userId),
+		Enabled:   gocloak.BoolP(false),
+	}
+	err := client.UpdateUser(ctx, getAdminToken(), data.UserRealm, user)
+	if err != nil{
+		lib.TerminalLogger.Info("Something went wrong updating the user enabled: ", err)
+		lib.DocuLogger.Info("Something went wrong updating the user enabled: ", err)
+		return false
+	} else {
+		return true
+	}
+}
+
 func getEmployeesFromKeycloak() ([]*gocloak.User, error) {
 	return client.GetUsersByRoleName(ctx, getAdminToken(), data.UserRealm, "EMPLOYEE_ROLE")
 }
 
+func getAdminsFromKeycloak() ([]*gocloak.User, error) {
+	return client.GetUsersByRoleName(ctx, getAdminToken(), data.UserRealm, "ADMIN_ROLE")
+}
+
 func updateEmployeeToAdmin(userId string) (bool, map[string]interface{}){
-	//As we cant create an user with a role for problems that keycloak has
-	//we have to update the user. We need to take the ID from the user.
-	employeeRole, err := client.GetRealmRole(ctx, getAdminToken(), data.UserRealm, "EMPLOYEE_ROLE")
-	if err != nil{
-		lib.TerminalLogger.Info("Couldn't get the employee role", err)
-		lib.DocuLogger.Info("Couldn't get the employee role", err)
+
+	deletion := deleteRole(userId, "EMPLOYEE_ROLE")
+
+	if !deletion{
+		lib.TerminalLogger.Info("Couldn't delete the employee role to the user. ")
+		lib.DocuLogger.Info("Couldn't delete the employee role to the user. ")
 		return false, map[string]interface{}{"state": "No se ha podido dar permisos de administrador a este empleado"}
 	}
 
-	var eRole []gocloak.Role
-	eRole = append(eRole, *employeeRole)
-	client.DeleteRealmRoleFromUser(ctx, getAdminToken(), data.UserRealm, userId, eRole)
+	answer := updateUserRole("ADMIN_ROLE", userId)
 
-	adminRole, err := client.GetRealmRole(ctx, getAdminToken(), data.UserRealm, "ADMIN_ROLE")
-	if err != nil{
-		lib.TerminalLogger.Info("Couldn't get the admin role", err)
-		lib.DocuLogger.Info("Couldn't get the admin role", err)
-		return false, map[string]interface{}{"state": "No se ha podido dar permisos de administrador a este empleado"}
-	}
-
-	var aRole []gocloak.Role
-	aRole = append(aRole, *adminRole)
-	err = client.AddRealmRoleToUser(ctx, getAdminToken(), data.UserRealm, userId, aRole)
-	if err != nil{
-		lib.TerminalLogger.Info("Couldn't update the user. ", err)
-		lib.DocuLogger.Info("Couldn't update the user. ", err)
+	if !answer{
+		lib.TerminalLogger.Info("Couldn't update the user. ")
+		lib.DocuLogger.Info("Couldn't update the user. ")
 		return false, map[string]interface{}{"state": "No se ha podido dar permisos de administrador a este empleado"}
 	} else {
 		lib.TerminalLogger.Info("The employee has been upgraded. ")
@@ -167,6 +174,69 @@ func updateEmployeeToAdmin(userId string) (bool, map[string]interface{}){
 		return true, map[string]interface{}{"state": "Este empleado ya tiene permisos de administrador"}
 	}
 
+}
+
+func layOffEmployee(userId string) (bool, map[string]interface{}){
+	employeeDeletion := deleteRole(userId, "EMPLOYEE_ROLE")
+
+	adminDeletion := deleteRole(userId, "ADMIN_ROLE")
+
+	if !employeeDeletion && !adminDeletion{
+		lib.TerminalLogger.Info("Couldn't delete the role to the user. ")
+		lib.DocuLogger.Info("Couldn't delete the role to the user. ")
+		return false, map[string]interface{}{"state": "No se ha podido dar de baja al empleado"}
+	}
+
+	err := updateUserRole("EMPLOYEE_ROLE", userId)
+
+	if !err{
+		lib.TerminalLogger.Info("Couldn't update the user. ")
+		lib.DocuLogger.Info("Couldn't update the user. ")
+		return false, map[string]interface{}{"state": "No se ha podido actualizar el role a este empleado"}
+	}
+
+	answer := updateUserDisabled(userId)
+
+	if !answer{
+		lib.TerminalLogger.Info("Couldn't lay off the user. ")
+		lib.DocuLogger.Info("Couldn't lay off the user. ")
+		return false, map[string]interface{}{"state": "No se ha podido dar de baja al empleado"}
+	} else {
+		lib.TerminalLogger.Info("The employee has been upgraded. ")
+		lib.DocuLogger.Info("The employee has been upgraded. ")
+		return true, map[string]interface{}{"state": "Empleado dado de baja"}
+	}
+
+}
+
+func renewEmployee(userId string) (bool, map[string]interface{}) {
+	answer := updateUserEnabled(userId)
+
+	if !answer{
+		lib.TerminalLogger.Info("Couldn't lay off the user. ")
+		lib.DocuLogger.Info("Couldn't lay off the user. ")
+		return false, map[string]interface{}{"state": "No se ha podido dar de alta al empleado"}
+	} else {
+		lib.TerminalLogger.Info("The employee has been upgraded. ")
+		lib.DocuLogger.Info("The employee has been upgraded. ")
+		return true, map[string]interface{}{"state": "Empleado dado de alta"}
+	}
+}
+
+func deleteRole(userId, userRole string) bool {
+	//As we cant create an user with a role for problems that keycloak has
+	//we have to update the user. We need to take the ID from the user.
+	role, err := client.GetRealmRole(ctx, getAdminToken(), data.UserRealm, userRole)
+	if err != nil{
+		lib.TerminalLogger.Info("Couldn't get the employee role", err)
+		lib.DocuLogger.Info("Couldn't get the employee role", err)
+		return false
+	}
+
+	var keycloakRole []gocloak.Role
+	keycloakRole = append(keycloakRole, *role)
+	client.DeleteRealmRoleFromUser(ctx, getAdminToken(), data.UserRealm, userId, keycloakRole)
+	return true
 }
 
 func DeleteKeycloakUser(userId string) bool{
