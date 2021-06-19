@@ -23,7 +23,7 @@ func setAppointmentReminder(appointmentData structures.Appointment) {
 
 func setExerciseReminder(exerciseData structures.Exercise) {
 	c.AddFunc(strconv.Itoa(exerciseData.Minute) + " " + strconv.Itoa(exerciseData.Hour - 1) + " " + strconv.Itoa(exerciseData.Day) + " " +
-		strconv.Itoa(exerciseData.Month) + " *", func(){exerciseRreminder(exerciseData)})
+		strconv.Itoa(exerciseData.Month) + " *", func(){exerciseReminder(exerciseData)})
 }
 
 func appointmentReminder(appointmentData structures.Appointment) {
@@ -35,18 +35,18 @@ func appointmentReminder(appointmentData structures.Appointment) {
 	_, employee_name := getStringFromField("employee", "name", "dni", employee_dni)
 	sendReminder("CITA FISIOTERAPIA", "Tienes una cita pendiente con " + employee_name + ".",
 		strconv.Itoa(appointmentData.Day), strconv.Itoa(appointmentData.Hour) + ":" + minute,
-		"http://localhost:8081/calendar", appointmentData.Patient_email, appointmentData.Month)
+		"https://clinica-fortia.netlify.app/calendar", appointmentData.Patient_email, appointmentData.Month)
 
 }
 
-func exerciseRreminder(exerciseData structures.Exercise) {
+func exerciseReminder(exerciseData structures.Exercise) {
 	minute := strconv.Itoa(exerciseData.Minute)
 	if (exerciseData.Minute >= 0 && exerciseData.Minute<10){
 		minute = "0" + minute
 	}
 	sendReminder("EJERCICIO: " + exerciseData.Exercise_name + " pendiente", exerciseData.Description,
 		strconv.Itoa(exerciseData.Day), strconv.Itoa(exerciseData.Hour) + ":" + minute,
-		"http://localhost:8081/calendar", exerciseData.Patient_email, exerciseData.Month)
+		"https://clinica-fortia.netlify.app/calendar", exerciseData.Patient_email, exerciseData.Month)
 
 }
 

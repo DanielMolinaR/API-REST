@@ -309,15 +309,6 @@ func verifyAppointmentAvailableness(patient_dni, employee_dni, date string) (boo
 	return true, nil
 }
 
-func verifyExerciseAvailableness(patient_dni, date string) (bool, map[string]interface{}) {
-	if !verifyPatientAvaliableness(patient_dni, date, "exercises"){
-		return false, map[string]interface{}{"state": "El paciente ya tiene una cita en esta fecha"}
-		lib.TerminalLogger.Error("The patient has a appointments at the same date")
-		lib.DocuLogger.Error("The patient has a appointments at the same date")
-	}
-	return true, nil
-}
-
 func verifyEmployeeAvaliableness(employee_dni, date, table string) bool{
 	return checkIfAvailable("employee", employee_dni, date, table)
 }

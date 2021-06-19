@@ -101,12 +101,6 @@ func getExpTimeFromUuid(uuid string) (int64){
 	return DoSelectExpTimeFromUniqueUrl(sqlStatement, uuid)
 }
 
-func insertUuidExpTimeAndUserId(uuid, userId, email string) bool{
-	sqlStatement := "INSERT INTO UniqueUrl (uuid, expiration_date, user_id, email) VALUES ($1, $2, $3, $4);"
-	expTime := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day() + 3, time.Now().Hour(), time.Now().Minute(), time.Now().Second(),0, time.UTC)
-	return DoUniqueUrlTableInsert(sqlStatement, uuid, expTime.String()[:20], userId, email)
-}
-
 func DeleteUuidRow(uuid string) {
 	sqlStatement := "DELETE FROM UniqueUrl WHERE (uuid = $1)"
 	DoDeleteUuidRow(sqlStatement, uuid)
@@ -342,6 +336,13 @@ func getAllEmployeeDnis() (bool, pgx.Rows) {
 	return GetRowsFromQuery(sqlStatement)
 }
 
+func insertUuidExpTimeAndUserId(uuid, userId, email string) bool{
+	sqlStatement := "INSERT INTO UniqueUrl (uuid, expiration_date, user_id, email) VALUES ($1, $2, $3, $4);"
+	expTime := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day() + 3,
+		time.Now().Hour(), time.Now().Minute(), time.Now().Second(),0, time.UTC)
+	return DoUniqueUrlTableInsert(sqlStatement, uuid, expTime.String()[:20], userId, email)
+}
+
 func getAllApointmentsOfTheDay(employeeDni string) (bool, pgx.Rows) {
 	//Here we get all the appointment from today for the daily reminder to the employees
 	beginDay := now.BeginningOfDay()
@@ -361,7 +362,7 @@ func upgradeEmployeeInTheDB(dni string) (bool, map[string]interface{}) {
 
 func doLayOff(dni string) (bool, map[string]interface{}) {
 	//Make an employee not to be able to work anymore
-	sqlStatement := "UPDATE employee SET active = false where dni = $1"
+	sqlStatement := "UPDATE employee SET active = false, admin = false where dni = $1"
 	return DoEmployeeLayOff(sqlStatement, dni)
 }
 

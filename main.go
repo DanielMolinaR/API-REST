@@ -582,7 +582,6 @@ func main() {
 	}
 
 	handler := c.Handler(router)
-	//router.Use(mux.CORSMethodMiddleware(handler))
 	log.Fatal(http.ListenAndServe(url, handler))
 }
 
