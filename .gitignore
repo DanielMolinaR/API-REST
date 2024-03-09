@@ -297,3 +297,5 @@ $RECYCLE.BIN/
 *.txt
 
 *.exe
+
+*.json

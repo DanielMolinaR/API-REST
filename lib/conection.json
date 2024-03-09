@@ -1,8 +1,0 @@
-{
-    "Host": "localhost",
-    "Port": 5432,
-    "User": "postgres",
-    "Password": "postgres",
-    "Database": "tfg",
-    "Uri": "postgres://drbhqrenjpzobv:f4d4010a07d6055a94dbe6deb0e389841a014bd0e38359fb49287f9b9e73b627@ec2-34-252-251-16.eu-west-1.compute.amazonaws.com:5432/dej6m8ehk47kvq"
-}
